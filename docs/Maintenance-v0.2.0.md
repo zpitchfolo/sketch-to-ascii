@@ -13,7 +13,7 @@ This maintenance pass addresses the fixed-size drawing surface, unreliable inlin
 
 - Expanded the logical drawing surface from 1000 × 620 to 4000 × 2500.
 - Added a dedicated `.canvas-world` layer that owns the canvas and text editor together. Applying pan and zoom to the shared world keeps the editor positioned in the same coordinate space as the drawing.
-- Set the initial drawing zoom to 25% so the larger workspace has a useful initial view.
+- Set the initial drawing zoom to 50% and allow zooming out to 10%, giving the larger workspace substantial navigable room.
 - Kept the text editor positioned using drawing-world coordinates rather than calculating a separate screen position.
 - Added an independent pan/zoom controller to the ASCII output viewport. Middle-mouse drag pans; the mouse wheel zooms around the pointer.
 - Updated README and design documentation to describe the current behavior and limitations.
