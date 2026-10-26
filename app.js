@@ -9,6 +9,8 @@
   const undoButton = document.getElementById('undoButton');
   const inkColor = document.getElementById('inkColor');
   const textEditor = document.getElementById('textEditor');
+  const canvasFrame = document.querySelector('.canvas-frame');
+  const view = { zoom: 1, panX: 0, panY: 0, panning: false, panStart: null };
 
   const state = {
     tool: 'select',
@@ -210,11 +212,12 @@
     textEditor.value = existingObject ? existingObject.text : '';
     textEditor.dataset.x = String(x);
     textEditor.dataset.y = String(y);
-    textEditor.style.left = Math.max(4, (x / canvas.width) * canvasRect.width) + 'px';
-    textEditor.style.top = Math.max(4, (y / canvas.height) * canvasRect.height) + 'px';
+    textEditor.style.left = Math.max(4, (x / canvas.width) * canvas.offsetWidth) + 'px';
+    textEditor.style.top = Math.max(4, (y / canvas.height) * canvas.offsetHeight) + 'px';
     textEditor.style.width = Math.max(140, Math.min(320, existingObject ? getBounds(existingObject).w + 24 : 220)) + 'px';
     textEditor.style.height = Math.max(32, existingObject ? getBounds(existingObject).h + 12 : 38) + 'px';
-    textEditor.style.fontSize = existingObject ? fontSize(existingObject) + 'px' : '16px';
+    textEditor.style.fontSize = (existingObject ? fontSize(existingObject) : 16) * view.zoom + 'px';
+    textEditor.style.transform = `translate(${view.panX}px, ${view.panY}px) scale(${view.zoom})`;
     textEditor.hidden = false;
     textEditor.focus();
     textEditor.setSelectionRange(textEditor.value.length, textEditor.value.length);
@@ -289,6 +292,60 @@
     state.selectedId = object.id;
   }
 
+  function applyViewTransform() {
+    const transform = `translate(${view.panX}px, ${view.panY}px) scale(${view.zoom})`;
+    canvas.style.transform = transform;
+    textEditor.style.transform = transform;
+    let indicator = canvasFrame.querySelector('.canvas-zoom-indicator');
+    if (!indicator) {
+      indicator = document.createElement('div');
+      indicator.className = 'canvas-zoom-indicator';
+      indicator.setAttribute('aria-hidden', 'true');
+      canvasFrame.appendChild(indicator);
+    }
+    indicator.textContent = `${Math.round(view.zoom * 100)}%`;
+  }
+
+  canvasFrame.addEventListener('pointerdown', event => {
+    if (event.button !== 1) return;
+    event.preventDefault();
+    view.panning = true;
+    view.panStart = { x: event.clientX, y: event.clientY, panX: view.panX, panY: view.panY };
+    canvasFrame.classList.add('is-panning');
+    canvasFrame.setPointerCapture(event.pointerId);
+  });
+  canvasFrame.addEventListener('pointermove', event => {
+    if (!view.panning || !view.panStart) return;
+    view.panX = view.panStart.panX + event.clientX - view.panStart.x;
+    view.panY = view.panStart.panY + event.clientY - view.panStart.y;
+    applyViewTransform();
+  });
+  function endPan(event) {
+    if (!view.panning) return;
+    view.panning = false;
+    view.panStart = null;
+    canvasFrame.classList.remove('is-panning');
+    if (canvasFrame.hasPointerCapture(event.pointerId)) canvasFrame.releasePointerCapture(event.pointerId);
+  }
+  canvasFrame.addEventListener('pointerup', endPan);
+  canvasFrame.addEventListener('pointercancel', endPan);
+  canvasFrame.addEventListener('auxclick', event => { if (event.button === 1) event.preventDefault(); });
+  canvasFrame.addEventListener('contextmenu', event => event.preventDefault());
+  canvasFrame.addEventListener('wheel', event => {
+    event.preventDefault();
+    const rect = canvasFrame.getBoundingClientRect();
+    const localX = event.clientX - rect.left;
+    const localY = event.clientY - rect.top;
+    const oldZoom = view.zoom;
+    const nextZoom = Math.max(0.25, Math.min(4, oldZoom * (event.deltaY < 0 ? 1.1 : 1 / 1.1)));
+    const canvasX = (localX - view.panX) / oldZoom;
+    const canvasY = (localY - view.panY) / oldZoom;
+    view.zoom = nextZoom;
+    view.panX = localX - canvasX * nextZoom;
+    view.panY = localY - canvasY * nextZoom;
+    applyViewTransform();
+  }, { passive: false });
+
   canvas.addEventListener('pointerdown', event => {
     if (event.button !== 0) return;
     const point = getPoint(event);
@@ -328,6 +385,7 @@
     }
 
     if (state.tool === 'text') {
+      event.preventDefault();
       state.drawing = false;
       openTextEditor(point);
       return;
@@ -526,7 +584,7 @@
 
   document.getElementById('copyButton').addEventListener('click', () => {
     if (!asciiOutput.value) asciiOutput.value = generateAscii();
-    copyText(getCombinedText(), 'Copied to Chat.');
+    copyText(getCombinedText(), 'Copied drawing and descriptor.');
   });
   document.getElementById('copyAsciiButton').addEventListener('click', () => {
     if (!asciiOutput.value) asciiOutput.value = generateAscii();
@@ -559,5 +617,6 @@
     event.preventDefault();
   });
 
+  applyViewTransform();
   render();
 })();
