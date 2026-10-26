@@ -13,7 +13,7 @@
   const canvasWorld = document.querySelector('.canvas-world');
   const asciiViewport = document.querySelector('.ascii-viewport');
   const asciiZoomIndicator = document.querySelector('.ascii-zoom-indicator');
-  const view = { zoom: 0.25, panX: 0, panY: 0, panning: false, panStart: null };
+  const view = { zoom: 0.5, panX: 0, panY: 0, panning: false, panStart: null };
   const asciiView = { zoom: 1, panX: 0, panY: 0, panning: false, panStart: null };
 
   const state = {
@@ -339,7 +339,7 @@
       const localX = event.clientX - rect.left;
       const localY = event.clientY - rect.top;
       const oldZoom = model.zoom;
-      const nextZoom = Math.max(0.25, Math.min(4, oldZoom * (event.deltaY < 0 ? 1.1 : 1 / 1.1)));
+      const nextZoom = Math.max(0.1, Math.min(4, oldZoom * (event.deltaY < 0 ? 1.1 : 1 / 1.1)));
       const contentX = (localX - model.panX) / oldZoom;
       const contentY = (localY - model.panY) / oldZoom;
       model.zoom = nextZoom;
