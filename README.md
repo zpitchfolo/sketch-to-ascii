@@ -33,5 +33,5 @@ Open `index.html` in a modern browser. No build step, backend, account, or AI se
 
 ## Project documents
 
-See `docs/Initial-Design-v0.1.0.md` for the design and workflow. See `docs/Maintenance-v0.4.0.md` for the current repair candidate and its verification status. Earlier maintenance records preserve previous candidates.
+See `docs/Initial-Design-v0.1.0.md` for the design and workflow. See `docs/Maintenance-v0.5.0.md` for the current viewport-fit layout update and its verification status. Earlier maintenance records preserve previous candidates.
 # sketch-to-ascii
