@@ -216,7 +216,7 @@
     textEditor.style.top = Math.max(4, (y / canvas.height) * canvas.offsetHeight) + 'px';
     textEditor.style.width = Math.max(140, Math.min(320, existingObject ? getBounds(existingObject).w + 24 : 220)) + 'px';
     textEditor.style.height = Math.max(32, existingObject ? getBounds(existingObject).h + 12 : 38) + 'px';
-    textEditor.style.fontSize = (existingObject ? fontSize(existingObject) : 16) * view.zoom + 'px';
+    textEditor.style.fontSize = (existingObject ? fontSize(existingObject) : 16) + 'px';
     textEditor.style.transform = `translate(${view.panX}px, ${view.panY}px) scale(${view.zoom})`;
     textEditor.hidden = false;
     textEditor.focus();
