@@ -14,6 +14,8 @@
   const canvasWorld = document.querySelector('.canvas-world');
   const asciiViewport = document.querySelector('.ascii-viewport');
   const asciiZoomIndicator = document.querySelector('.ascii-zoom-indicator');
+  const asciiPreviewContext = asciiPreview.getContext('2d');
+  let asciiPreviewText = '';
   const view = { zoom: 0.5, panX: 0, panY: 0, panning: false, panStart: null, centered: false };
   const asciiView = { zoom: 1, panX: 0, panY: 0, panning: false, panStart: null };
 
@@ -235,8 +237,6 @@
     if (!commit) { render(); return; }
     if (oldId !== null) {
       const object = getObject(oldId);
-      // Clicking away from an existing label must never delete it just because
-      // the editor was temporarily emptied or lost focus.
       if (object && value.trim() && object.text !== value) {
         saveUndo();
         object.text = value;
@@ -418,15 +418,39 @@
   }
 
   function updateAsciiPreview(value = asciiOutput.value) {
-    const empty = !value;
-    asciiPreview.textContent = empty ? 'Your ASCII drawing will appear here…' : value;
-    asciiPreview.classList.toggle('is-empty', empty);
+    asciiPreviewText = value || 'Your ASCII drawing will appear here…';
+    asciiPreview.classList.toggle('is-empty', !value);
+    applyAsciiViewTransform();
   }
 
   function applyAsciiViewTransform() {
-    asciiPreview.style.transform = `translate(${asciiView.panX}px, ${asciiView.panY}px) scale(${asciiView.zoom})`;
+    const width = asciiViewport.clientWidth;
+    const height = asciiViewport.clientHeight;
+    if (!width || !height) return;
+    const pixelRatio = window.devicePixelRatio || 1;
+    const backingWidth = Math.round(width * pixelRatio);
+    const backingHeight = Math.round(height * pixelRatio);
+    if (asciiPreview.width !== backingWidth || asciiPreview.height !== backingHeight) {
+      asciiPreview.width = backingWidth;
+      asciiPreview.height = backingHeight;
+    }
+    asciiPreviewContext.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    asciiPreviewContext.clearRect(0, 0, width, height);
+    asciiPreviewContext.save();
+    asciiPreviewContext.translate(asciiView.panX, asciiView.panY);
+    asciiPreviewContext.scale(asciiView.zoom, asciiView.zoom);
+    asciiPreviewContext.font = '11px ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace';
+    asciiPreviewContext.textBaseline = 'top';
+    asciiPreviewContext.fillStyle = asciiPreview.classList.contains('is-empty') ? '#a2a5b0' : '#252833';
+    const lineHeight = 16.5;
+    asciiPreviewText.split('\\n').forEach((line, index) => {
+      asciiPreviewContext.fillText(line, 12, 12 + index * lineHeight);
+    });
+    asciiPreviewContext.restore();
     asciiZoomIndicator.textContent = `${Math.round(asciiView.zoom * 100)}%`;
   }
+
+  window.addEventListener('resize', applyAsciiViewTransform);
 
   asciiOutput.addEventListener('input', () => updateAsciiPreview());
   updateAsciiPreview();
@@ -437,7 +461,12 @@
   applyAsciiViewTransform();
 
   canvas.addEventListener('pointerdown', event => {
+    // Textarea clicks are for caret placement, not canvas actions.
+    if (textEditor.contains(event.target)) return;
     if (event.button !== 0) return;
+    // Commit the previous label before handling the next canvas click. Do not
+    // rely solely on blur ordering, which varies with pointer/focus sequences.
+    if (!textEditor.hidden) finishTextEditing(true);
     const point = getPoint(event);
     canvas.setPointerCapture(event.pointerId);
     state.start = point;
