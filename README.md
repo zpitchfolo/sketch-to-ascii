@@ -15,7 +15,7 @@ Open `index.html` in a modern browser. No build step, backend, account, or AI se
 - Draw on a workspace that expands as you pan toward its edges; pan with the middle mouse button and zoom with the mouse wheel
 - Start with the drawing world centered in the viewport; expanding an edge preserves existing object positions and undo snapshots
 - Place consecutive text labels without switching tools; each previous label is committed before the next canvas click, and clicking away commits non-empty edits without deleting an existing label
-- Pan and zoom the ASCII artwork drawn inside a clipped canvas preview, independent of the separate editable/copyable generated-text field
+- Pan and zoom the ASCII artwork drawn inside a clipped canvas preview; generated text is kept internally for copying rather than shown in a separate text box
 - ASCII generation from the drawing's objects
 - Optional descriptor
 - Copy ASCII or copy the drawing plus optional descriptor
@@ -33,5 +33,5 @@ Open `index.html` in a modern browser. No build step, backend, account, or AI se
 
 ## Project documents
 
-See `docs/Initial-Design-v0.1.0.md` for the design and workflow. See `docs/Maintenance-v0.5.0.md` for the current viewport-fit layout update and its verification status. Earlier maintenance records preserve previous candidates.
+See `docs/Initial-Design-v0.1.0.md` for the design and workflow. See `docs/Maintenance-v0.6.0.md` for the latest text-selection and preview-only output update and its verification status. Earlier maintenance records preserve previous candidates.
 # sketch-to-ascii
