@@ -12,6 +12,7 @@ Open `index.html` in a modern browser. No build step, backend, account, or AI se
 - Rectangles, lines, arrows, and text labels
 - Select, move, and resize existing objects with visible handles
 - Enter and edit text directly on the canvas in an inline text box
+- Pan the canvas by dragging with the middle mouse button; zoom with the mouse wheel
 - ASCII generation from the drawing's objects
 - Optional descriptor
 - Copy ASCII or copy the drawing plus optional descriptor
