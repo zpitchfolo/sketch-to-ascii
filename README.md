@@ -12,9 +12,10 @@ Open `index.html` in a modern browser. No build step, backend, account, or AI se
 - Rectangles, lines, arrows, and text labels
 - Select, move, and resize existing objects with visible handles
 - Enter and edit text directly on the canvas in an inline text box
-- Draw on a large 4000 × 2500 workspace; pan with the middle mouse button and zoom with the mouse wheel
-- Edit text in-place on the drawing workspace
-- Pan and zoom the generated ASCII output with the middle mouse button and mouse wheel
+- Draw on a workspace that expands as you pan toward its edges; pan with the middle mouse button and zoom with the mouse wheel
+- Start with the drawing world centered in the viewport; expanding an edge preserves existing object positions and undo snapshots
+- Edit text in-place on the drawing workspace; clicking away commits non-empty edits without deleting an existing label
+- Pan and zoom a dedicated ASCII preview without transforming the separate editable/copyable generated-text field
 - ASCII generation from the drawing's objects
 - Optional descriptor
 - Copy ASCII or copy the drawing plus optional descriptor
@@ -25,12 +26,12 @@ Open `index.html` in a modern browser. No build step, backend, account, or AI se
 - This is an early prototype, not an accepted release.
 - Multi-select is not implemented yet.
 - ASCII output is a compact fixed character grid that fits the drawing's overall bounds; it approximates freehand strokes, so some details are lost.
-- The drawing world is large but finite (4000 × 2500), not mathematically infinite.
+- The drawing world expands in 2000-unit increments when panning near an edge; it is practically expandable rather than mathematically infinite.
 - Images are intentionally out of scope for the first version.
 - Browser clipboard permissions vary by browser and how the file is opened; a manual-copy fallback is included.
 - The canvas and drawing are held in memory. Persistence is not implemented.
 
 ## Project documents
 
-See `docs/Initial-Design-v0.1.0.md` for the design and workflow. See `docs/Maintenance-v0.2.0.md` for this maintenance pass and its verification status.
+See `docs/Initial-Design-v0.1.0.md` for the design and workflow. See `docs/Maintenance-v0.3.0.md` for the current repair candidate and its verification status. The earlier `docs/Maintenance-v0.2.0.md` records the previous candidate.
 # sketch-to-ascii
