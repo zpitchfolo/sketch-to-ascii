@@ -76,3 +76,49 @@ textarea::placeholder { color: #a2a5b0; }
 @media (min-width: 1000px) { .canvas-frame { min-height: 580px; } }
 @media (max-width: 900px) { .app-shell { padding: 16px; } .workspace { grid-template-columns: 1fr; } .output-column { min-height: 600px; } .canvas-frame, #drawingCanvas { min-height: 420px; } }
 @media (max-width: 480px) { .app-shell { padding: 10px; } .drawing-column, .output-column { padding: 12px; } .tool-button { padding: 7px; } .tool-button > span { font-size: 11px; } .output-actions { grid-template-columns: 1fr; } .topbar { gap: 10px; } .brand-copy p { max-width: 210px; line-height: 1.4; } }
+
+/* Single-screen desktop layout: keep the app chrome fixed to the viewport. */
+@media (min-width: 901px) {
+  html, body { height: 100%; overflow: hidden; }
+  .app-shell {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    padding: 14px 22px 8px;
+    overflow: hidden;
+  }
+  .topbar { flex: 0 0 auto; margin-bottom: 12px; }
+  .workspace {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    gap: 14px;
+  }
+  .drawing-column, .output-column { min-height: 0; overflow: hidden; }
+  .drawing-column { padding: 12px; }
+  .toolbar { padding-bottom: 8px; }
+  .canvas-frame, .canvas-frame#unused { min-height: 0; }
+  .canvas-footer { padding-top: 8px; }
+  .output-column { padding: 14px; }
+  .section-description { margin: 6px 0 10px; line-height: 1.4; }
+  .field-label { margin: 9px 0 5px; }
+  .ascii-viewport { flex: 1 1 110px; height: auto; min-height: 70px; }
+  .ascii-output { flex: 1 1 80px; min-height: 48px; max-height: 22vh; resize: none; }
+  .descriptor { min-height: 38px; max-height: 12vh; resize: none; }
+  .output-actions { gap: 7px; margin-top: 8px; }
+  .output-actions .button { min-height: 36px; padding: 7px 9px; font-size: 12px; }
+  .status-message { min-height: 12px; margin-top: 6px; }
+  .app-footer { flex: 0 0 auto; padding-top: 7px; }
+  @media (min-width: 1000px) { .canvas-frame { min-height: 0; } }
+}
+
+/* Keep the stacked layout usable on narrow screens, where one-screen
+   side-by-side layout is not practical. */
+@media (max-width: 900px) {
+  html, body { height: auto; overflow: auto; }
+  .app-shell { display: block; height: auto; min-height: 100vh; overflow: visible; }
+  .workspace { overflow: visible; }
+  .drawing-column, .output-column { overflow: visible; }
+}
