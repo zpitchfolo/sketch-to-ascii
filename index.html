@@ -32,6 +32,7 @@
         </div>
         <div class="canvas-frame">
           <canvas id="drawingCanvas" width="1000" height="620" aria-label="Drawing canvas"></canvas>
+          <textarea id="textEditor" class="canvas-text-editor" aria-label="Edit canvas text" rows="1" hidden></textarea>
           <div class="canvas-hint">Choose a tool, then draw here.</div>
         </div>
         <div class="canvas-footer">
@@ -55,8 +56,8 @@
         <label class="field-label" for="descriptor">Descriptor <span class="optional">optional</span></label>
         <textarea id="descriptor" class="descriptor" rows="3" placeholder="Explain anything the drawing alone doesn't show…"></textarea>
         <div class="output-actions">
-          <button id="copyButton" class="button button-primary" type="button">Copy for chat</button>
-          <button id="copyAsciiButton" class="button button-secondary" type="button">Copy ASCII only</button>
+          <button id="copyButton" class="button button-primary" type="button">Copy to Chat</button>
+          <button id="copyAsciiButton" class="button button-secondary" type="button">Copy ASCII</button>
         </div>
         <p id="statusMessage" class="status-message" role="status" aria-live="polite">Nothing copied yet.</p>
       </aside>
