@@ -8,6 +8,7 @@
   const statusMessage = document.getElementById('statusMessage');
   const undoButton = document.getElementById('undoButton');
   const inkColor = document.getElementById('inkColor');
+  const textEditor = document.getElementById('textEditor');
 
   const state = {
     tool: 'select',
@@ -20,6 +21,10 @@
     moving: false,
     moveOrigin: null,
     movedObjectSnapshot: null,
+    resizing: false,
+    resizeHandle: null,
+    resizeSnapshot: null,
+    editingTextId: null,
     nextId: 1
   };
 
@@ -77,6 +82,9 @@
     context.stroke();
   }
 
+  function fontSize(object) { return Number.parseFloat(object.font || FONT) || 16; }
+  function lineHeight(object) { return fontSize(object) * 1.2; }
+
   function drawObject(context, object) {
     context.save();
     context.strokeStyle = object.color || '#252833';
@@ -105,7 +113,7 @@
     } else if (object.type === 'text') {
       context.font = object.font || FONT;
       context.textBaseline = 'top';
-      object.text.split('\n').forEach((line, index) => context.fillText(line, object.x, object.y + index * 19));
+      object.text.split('\n').forEach((line, index) => context.fillText(line, object.x, object.y + index * lineHeight(object)));
     }
 
     if (object.id === state.selectedId) {
@@ -114,6 +122,12 @@
       context.lineWidth = 1.5;
       context.setLineDash([5, 4]);
       context.strokeRect(bounds.x - 5, bounds.y - 5, bounds.w + 10, bounds.h + 10);
+      context.setLineDash([]);
+      const handles = getHandlePoints(bounds);
+      context.fillStyle = '#ffffff';
+      context.strokeStyle = '#5d4bd6';
+      context.lineWidth = 1.5;
+      handles.forEach(handle => { context.fillRect(handle.x - 5, handle.y - 5, 10, 10); context.strokeRect(handle.x - 5, handle.y - 5, 10, 10); });
     }
     context.restore();
   }
@@ -129,7 +143,94 @@
     }
     ctx.save(); ctx.font = object.font || FONT;
     const width = Math.max(...object.text.split('\n').map(line => ctx.measureText(line).width)); ctx.restore();
-    return { x: object.x, y: object.y, w: width, h: object.text.split('\n').length * 19 };
+    return { x: object.x, y: object.y, w: width, h: object.text.split('\n').length * lineHeight(object) };
+  }
+
+  function getHandlePoints(bounds) {
+    const left = bounds.x, right = bounds.x + bounds.w, top = bounds.y, bottom = bounds.y + bounds.h;
+    const midX = (left + right) / 2, midY = (top + bottom) / 2;
+    return [
+      { name: 'nw', x: left, y: top }, { name: 'n', x: midX, y: top },
+      { name: 'ne', x: right, y: top }, { name: 'e', x: right, y: midY },
+      { name: 'se', x: right, y: bottom }, { name: 's', x: midX, y: bottom },
+      { name: 'sw', x: left, y: bottom }, { name: 'w', x: left, y: midY }
+    ];
+  }
+
+  function findResizeHandle(point) {
+    if (!state.selectedId) return null;
+    const object = getObject(state.selectedId);
+    if (!object) return null;
+    const handle = getHandlePoints(getBounds(object)).find(item => Math.abs(point.x - item.x) <= 9 && Math.abs(point.y - item.y) <= 9);
+    return handle ? handle.name : null;
+  }
+
+  function resizeObjectFromSnapshot(object, snapshot, handle, point) {
+    const original = getBounds(snapshot);
+    let left = original.x, top = original.y, right = original.x + original.w, bottom = original.y + original.h;
+    if (handle.includes('w')) left = point.x;
+    if (handle.includes('e')) right = point.x;
+    if (handle.includes('n')) top = point.y;
+    if (handle.includes('s')) bottom = point.y;
+    if (right - left < 8) { if (handle.includes('w')) left = right - 8; else right = left + 8; }
+    if (bottom - top < 8) { if (handle.includes('n')) top = bottom - 8; else bottom = top + 8; }
+    const sx = (right - left) / (original.w || 1), sy = (bottom - top) / (original.h || 1);
+    const mapX = x => left + (x - original.x) * sx;
+    const mapY = y => top + (y - original.y) * sy;
+    if (object.type === 'rect') {
+      object.x = left; object.y = top; object.w = right - left; object.h = bottom - top;
+    } else if (object.type === 'line' || object.type === 'arrow') {
+      object.x1 = mapX(snapshot.x1); object.y1 = mapY(snapshot.y1);
+      object.x2 = mapX(snapshot.x2); object.y2 = mapY(snapshot.y2);
+    } else if (object.type === 'freehand') {
+      object.points = snapshot.points.map(p => ({ x: mapX(p.x), y: mapY(p.y) }));
+    } else if (object.type === 'text') {
+      object.x = left; object.y = top;
+      const size = Math.max(8, Math.min(96, fontSize(snapshot) * ((Math.abs(sx) + Math.abs(sy)) / 2)));
+      object.font = size + 'px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+    }
+  }
+
+  function openTextEditor(point, existingObject = null) {
+    state.editingTextId = existingObject ? existingObject.id : null;
+    const canvasRect = canvas.getBoundingClientRect();
+    const x = existingObject ? existingObject.x : point.x;
+    const y = existingObject ? existingObject.y : point.y;
+    textEditor.value = existingObject ? existingObject.text : '';
+    textEditor.dataset.x = String(x);
+    textEditor.dataset.y = String(y);
+    textEditor.style.left = Math.max(4, (x / canvas.width) * canvasRect.width) + 'px';
+    textEditor.style.top = Math.max(4, (y / canvas.height) * canvasRect.height) + 'px';
+    textEditor.style.width = Math.max(140, Math.min(320, existingObject ? getBounds(existingObject).w + 24 : 220)) + 'px';
+    textEditor.style.height = Math.max(32, existingObject ? getBounds(existingObject).h + 12 : 38) + 'px';
+    textEditor.style.fontSize = existingObject ? fontSize(existingObject) + 'px' : '16px';
+    textEditor.hidden = false;
+    textEditor.focus();
+    textEditor.setSelectionRange(textEditor.value.length, textEditor.value.length);
+  }
+
+  function finishTextEditing(commit = true) {
+    if (textEditor.hidden) return;
+    const value = textEditor.value;
+    const oldId = state.editingTextId;
+    textEditor.hidden = true;
+    state.editingTextId = null;
+    if (!commit) { render(); return; }
+    if (oldId !== null) {
+      const object = getObject(oldId);
+      if (!value.trim()) {
+        saveUndo();
+        state.objects = state.objects.filter(item => item.id !== oldId);
+        if (state.selectedId === oldId) state.selectedId = null;
+      } else if (object && object.text !== value) {
+        saveUndo();
+        object.text = value;
+      }
+    } else if (value.trim()) {
+      saveUndo();
+      addObject({ type: 'text', x: Number.parseFloat(textEditor.dataset.x), y: Number.parseFloat(textEditor.dataset.y), text: value, font: '16px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace' });
+    }
+    render();
   }
 
   function render() {
@@ -185,7 +286,23 @@
     state.drawing = true;
 
     if (state.tool === 'select') {
+      const handle = findResizeHandle(point);
+      if (handle) {
+        const selected = getObject(state.selectedId);
+        saveUndo();
+        state.resizing = true;
+        state.resizeHandle = handle;
+        state.resizeSnapshot = cloneObjects([selected])[0];
+        return;
+      }
       const hit = hitTest(point);
+      if (hit && hit.type === 'text' && event.detail >= 2) {
+        state.drawing = false;
+        state.selectedId = hit.id;
+        openTextEditor(point, hit);
+        render();
+        return;
+      }
       state.selectedId = hit ? hit.id : null;
       if (hit) {
         saveUndo();
@@ -201,12 +318,7 @@
 
     if (state.tool === 'text') {
       state.drawing = false;
-      const value = window.prompt('Text label (use a new line for multiple lines):');
-      if (value && value.trim()) {
-        saveUndo();
-        addObject({ type: 'text', x: point.x, y: point.y, text: value });
-        render();
-      }
+      openTextEditor(point);
       return;
     }
 
@@ -222,6 +334,11 @@
   canvas.addEventListener('pointermove', event => {
     if (!state.drawing) return;
     const point = getPoint(event);
+    if (state.tool === 'select' && state.resizing && state.selectedId && state.resizeSnapshot) {
+      const object = getObject(state.selectedId);
+      if (object) { resizeObjectFromSnapshot(object, state.resizeSnapshot, state.resizeHandle, point); render(); }
+      return;
+    }
     if (state.tool === 'select' && state.moving && state.selectedId) {
       const object = getObject(state.selectedId);
       if (object && state.moveOrigin) {
@@ -251,11 +368,20 @@
       }
     }
     state.moving = false;
+    state.resizing = false;
+    state.resizeHandle = null;
+    state.resizeSnapshot = null;
     state.start = null;
     state.moveOrigin = null;
     state.movedObjectSnapshot = null;
     render();
   }
+  textEditor.addEventListener('keydown', event => {
+    if (event.key === 'Escape') { event.preventDefault(); finishTextEditing(false); }
+    else if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) { event.preventDefault(); finishTextEditing(true); }
+  });
+  textEditor.addEventListener('blur', () => finishTextEditing(true));
+
   canvas.addEventListener('pointerup', finishDrawing);
   canvas.addEventListener('pointercancel', finishDrawing);
 
@@ -357,7 +483,7 @@
 
   document.getElementById('generateButton').addEventListener('click', () => {
     asciiOutput.value = generateAscii();
-    statusMessage.textContent = 'ASCII generated. Add an optional descriptor, then copy for chat.';
+    statusMessage.textContent = 'ASCII generated.';
   });
 
   function getCombinedText() {
@@ -389,11 +515,11 @@
 
   document.getElementById('copyButton').addEventListener('click', () => {
     if (!asciiOutput.value) asciiOutput.value = generateAscii();
-    copyText(getCombinedText(), 'Copied drawing and descriptor for chat.');
+    copyText(getCombinedText(), 'Copied to Chat.');
   });
   document.getElementById('copyAsciiButton').addEventListener('click', () => {
     if (!asciiOutput.value) asciiOutput.value = generateAscii();
-    copyText(asciiOutput.value, 'Copied ASCII drawing.');
+    copyText(asciiOutput.value, 'Copied ASCII.');
   });
 
   document.getElementById('clearButton').addEventListener('click', () => {
