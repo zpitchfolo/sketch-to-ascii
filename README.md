@@ -10,17 +10,17 @@ Open `index.html` in a modern browser. No build step, backend, account, or AI se
 
 - Freehand drawing
 - Rectangles, lines, arrows, and text labels
-- Select and move existing objects
+- Select, move, and resize existing objects with visible handles
+- Enter and edit text directly on the canvas in an inline text box
 - ASCII generation from the drawing's objects
 - Optional descriptor
-- Copy ASCII only or copy the ASCII plus descriptor
+- Copy ASCII or copy the drawing plus optional descriptor
 - Clear canvas and undo the last action
 
 ## Known limitations
 
 - This is an early prototype, not an accepted release.
-- Text labels are added through a browser prompt.
-- Objects can be selected and moved, but resizing and multi-select are not implemented yet.
+- Multi-select is not implemented yet.
 - ASCII output uses a fixed character grid and approximates freehand strokes. Some drawings will lose detail.
 - Images are intentionally out of scope for the first version.
 - Browser clipboard permissions vary by browser and how the file is opened; a manual-copy fallback is included.
