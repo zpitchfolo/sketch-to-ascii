@@ -42,7 +42,7 @@ h1 { font-size: 21px; letter-spacing: -0.035em; }
 .canvas-frame.is-panning #drawingCanvas { cursor: grabbing; }
 .canvas-zoom-indicator, .ascii-zoom-indicator { position: absolute; top: 10px; right: 10px; z-index: 3; padding: 4px 7px; border: 1px solid #e1e2e9; border-radius: 6px; background: rgb(255 255 255 / 90%); color: #646879; font-size: 11px; pointer-events: none; }
 .ascii-viewport { position: relative; height: 260px; min-height: 200px; overflow: hidden; border: 1px solid var(--line); border-radius: 9px; background: #fcfcfe; touch-action: none; }
-.ascii-preview { position: absolute; top: 0; left: 0; min-width: 100%; min-height: 100%; width: max-content; margin: 0; padding: 12px; transform-origin: 0 0; color: var(--ink); font: 11px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; white-space: pre; tab-size: 2; pointer-events: none; }
+.ascii-preview { position: absolute; inset: 0; display: block; width: 100%; height: 100%; pointer-events: none; }
 .ascii-preview.is-empty { color: #a2a5b0; }
 .ascii-output { display: block; width: 100%; min-height: 145px; margin-top: 8px; padding: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 11px; line-height: 1.5; white-space: pre; tab-size: 2; resize: vertical; }
 .ascii-zoom-indicator { top: auto; bottom: 8px; right: 8px; }
