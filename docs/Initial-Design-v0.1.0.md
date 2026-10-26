@@ -18,7 +18,9 @@ The ASCII drawing is the primary output. The descriptor is optional context, not
 
 - Freehand drawing, rectangles, lines, arrows, and text labels.
 - Select, move, and resize drawn objects; clear the canvas and undo the last action.
-- Edit text inline, pan with the middle mouse button, and zoom with the mouse wheel.
+- Edit text inline in the drawing world, pan with the middle mouse button, and zoom with the mouse wheel.
+- Provide a larger 4000 × 2500 drawing world so panning exposes more drawable space.
+- Pan and zoom the generated ASCII output using the same middle-button and wheel gestures.
 - Generate a text-based visual representation of the drawing.
 - Preserve spatial relationships and recognizable layout as well as practical.
 - Optionally add a descriptor beneath the ASCII drawing.
@@ -35,7 +37,7 @@ The ASCII drawing is the primary output. The descriptor is optional context, not
 
 ## 3. User experience
 
-The interface has a compact toolbar, drawing canvas, ASCII output area, optional descriptor field, and two copy actions. Middle-mouse dragging pans the canvas, and the mouse wheel zooms around the pointer. The canvas is the main workspace. The user explicitly generates the ASCII output, inspects it, optionally adds context, then copies it.
+The interface has a compact toolbar, drawing canvas, ASCII output area, optional descriptor field, and two copy actions. The drawing world is 4000 × 2500 logical units inside a clipped viewport. Middle-mouse dragging pans the world, and the mouse wheel zooms around the pointer. The ASCII output has its own pan-and-zoom viewport. The canvas is the main workspace. The user explicitly generates the ASCII output, inspects it, optionally adds context, then copies it.
 
 ASCII output must be actual visual text, not merely a list of detected objects. It should use a consistent character grid and line breaks. The conversion is an approximation: curves, diagonals, and small details may be simplified.
 
@@ -161,7 +163,9 @@ Development artifacts as needed:
 
 - The descriptor is optional.
 - The user can copy ASCII only or the drawing plus descriptor.
-- The drawing canvas can be panned with middle-mouse dragging and zoomed with the mouse wheel.
+- The larger drawing world can be panned with middle-mouse dragging and zoomed with the mouse wheel.
+- The ASCII output viewport can be panned and zoomed independently.
+- Text editing remains aligned with the drawing world through pan and zoom.
 - The combined output separates the descriptor clearly.
 - Clipboard failure produces understandable feedback and a manual-copy fallback.
 
