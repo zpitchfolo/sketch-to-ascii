@@ -14,8 +14,8 @@ Open `index.html` in a modern browser. No build step, backend, account, or AI se
 - Enter and edit text directly on the canvas in an inline text box
 - Draw on a workspace that expands as you pan toward its edges; pan with the middle mouse button and zoom with the mouse wheel
 - Start with the drawing world centered in the viewport; expanding an edge preserves existing object positions and undo snapshots
-- Edit text in-place on the drawing workspace; clicking away commits non-empty edits without deleting an existing label
-- Pan and zoom a dedicated ASCII preview without transforming the separate editable/copyable generated-text field
+- Place consecutive text labels without switching tools; each previous label is committed before the next canvas click, and clicking away commits non-empty edits without deleting an existing label
+- Pan and zoom the ASCII artwork drawn inside a clipped canvas preview, independent of the separate editable/copyable generated-text field
 - ASCII generation from the drawing's objects
 - Optional descriptor
 - Copy ASCII or copy the drawing plus optional descriptor
@@ -33,5 +33,5 @@ Open `index.html` in a modern browser. No build step, backend, account, or AI se
 
 ## Project documents
 
-See `docs/Initial-Design-v0.1.0.md` for the design and workflow. See `docs/Maintenance-v0.3.0.md` for the current repair candidate and its verification status. The earlier `docs/Maintenance-v0.2.0.md` records the previous candidate.
+See `docs/Initial-Design-v0.1.0.md` for the design and workflow. See `docs/Maintenance-v0.4.0.md` for the current repair candidate and its verification status. Earlier maintenance records preserve previous candidates.
 # sketch-to-ascii
