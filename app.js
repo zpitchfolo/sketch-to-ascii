@@ -310,6 +310,65 @@
     indicator.textContent = `${Math.round(view.zoom * 100)}%`;
   }
 
+  function shiftPoint(point, dx, dy) {
+    if (!point) return;
+    point.x += dx;
+    point.y += dy;
+  }
+
+  function shiftObject(object, dx, dy) {
+    if (object.type === 'rect' || object.type === 'text') {
+      object.x += dx; object.y += dy;
+    } else if (object.type === 'line' || object.type === 'arrow') {
+      object.x1 += dx; object.y1 += dy; object.x2 += dx; object.y2 += dy;
+    } else if (object.type === 'freehand') {
+      object.points.forEach(point => shiftPoint(point, dx, dy));
+    }
+  }
+
+  function expandDrawingWorld(left = 0, top = 0, right = 0, bottom = 0) {
+    if (!(left || top || right || bottom)) return;
+    state.objects.forEach(object => shiftObject(object, left, top));
+    state.undoStack.forEach(snapshot => snapshot.forEach(object => shiftObject(object, left, top)));
+    if (state.draft) shiftObject(state.draft, left, top);
+    shiftPoint(state.start, left, top);
+    shiftPoint(state.moveOrigin, left, top);
+    if (state.resizeSnapshot) shiftObject(state.resizeSnapshot, left, top);
+    if (state.movedObjectSnapshot) shiftObject(state.movedObjectSnapshot, left, top);
+    if (!textEditor.hidden) {
+      const x = Number.parseFloat(textEditor.dataset.x);
+      const y = Number.parseFloat(textEditor.dataset.y);
+      textEditor.dataset.x = String(x + left);
+      textEditor.dataset.y = String(y + top);
+      textEditor.style.left = (x + left) + 'px';
+      textEditor.style.top = (y + top) + 'px';
+    }
+    canvas.width += left + right;
+    canvas.height += top + bottom;
+    canvas.style.width = canvas.width + 'px';
+    canvas.style.height = canvas.height + 'px';
+    canvasWorld.style.width = canvas.width + 'px';
+    canvasWorld.style.height = canvas.height + 'px';
+    view.panX -= left * view.zoom;
+    view.panY -= top * view.zoom;
+    render();
+  }
+
+  function expandDrawingWorldNearViewEdges() {
+    const margin = 600;
+    const leftEdge = -view.panX / view.zoom;
+    const topEdge = -view.panY / view.zoom;
+    const rightEdge = (canvasFrame.clientWidth - view.panX) / view.zoom;
+    const bottomEdge = (canvasFrame.clientHeight - view.panY) / view.zoom;
+    const grow = 2000;
+    expandDrawingWorld(
+      leftEdge < margin ? grow : 0,
+      topEdge < margin ? grow : 0,
+      rightEdge > canvas.width - margin ? grow : 0,
+      bottomEdge > canvas.height - margin ? grow : 0
+    );
+  }
+
   function attachPanZoom(element, model, applyTransform) {
     element.addEventListener('pointerdown', event => {
       if (event.button !== 1) return;
@@ -323,6 +382,7 @@
       if (!model.panning || !model.panStart) return;
       model.panX = model.panStart.panX + event.clientX - model.panStart.x;
       model.panY = model.panStart.panY + event.clientY - model.panStart.y;
+      if (model === view) expandDrawingWorldNearViewEdges();
       applyTransform();
     });
     function endPan(event) {
@@ -348,6 +408,7 @@
       model.zoom = nextZoom;
       model.panX = localX - contentX * nextZoom;
       model.panY = localY - contentY * nextZoom;
+      if (model === view) expandDrawingWorldNearViewEdges();
       applyTransform();
     }, { passive: false });
   }
