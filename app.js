@@ -443,7 +443,7 @@
     asciiPreviewContext.textBaseline = 'top';
     asciiPreviewContext.fillStyle = asciiPreview.classList.contains('is-empty') ? '#a2a5b0' : '#252833';
     const lineHeight = 16.5;
-    asciiPreviewText.split('\\n').forEach((line, index) => {
+    asciiPreviewText.split('\n').forEach((line, index) => {
       asciiPreviewContext.fillText(line, 12, 12 + index * lineHeight);
     });
     asciiPreviewContext.restore();
