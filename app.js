@@ -429,6 +429,7 @@
   }
 
   asciiOutput.addEventListener('input', () => updateAsciiPreview());
+  updateAsciiPreview();
 
   attachPanZoom(canvasFrame, view, applyViewTransform);
   attachPanZoom(asciiViewport, asciiView, applyAsciiViewTransform);
