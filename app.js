@@ -123,7 +123,7 @@
       context.setLineDash([5, 4]);
       context.strokeRect(bounds.x - 5, bounds.y - 5, bounds.w + 10, bounds.h + 10);
       context.setLineDash([]);
-      const handles = getHandlePoints(bounds);
+      const handles = getHandlePoints(bounds, object);
       context.fillStyle = '#ffffff';
       context.strokeStyle = '#5d4bd6';
       context.lineWidth = 1.5;
@@ -146,7 +146,13 @@
     return { x: object.x, y: object.y, w: width, h: object.text.split('\n').length * lineHeight(object) };
   }
 
-  function getHandlePoints(bounds) {
+  function getHandlePoints(bounds, object = null) {
+    if (object && (object.type === 'line' || object.type === 'arrow')) {
+      return [
+        { name: 'p1', x: object.x1, y: object.y1 },
+        { name: 'p2', x: object.x2, y: object.y2 }
+      ];
+    }
     const left = bounds.x, right = bounds.x + bounds.w, top = bounds.y, bottom = bounds.y + bounds.h;
     const midX = (left + right) / 2, midY = (top + bottom) / 2;
     return [
@@ -161,11 +167,16 @@
     if (!state.selectedId) return null;
     const object = getObject(state.selectedId);
     if (!object) return null;
-    const handle = getHandlePoints(getBounds(object)).find(item => Math.abs(point.x - item.x) <= 9 && Math.abs(point.y - item.y) <= 9);
+    const handle = getHandlePoints(getBounds(object), object).find(item => Math.abs(point.x - item.x) <= 9 && Math.abs(point.y - item.y) <= 9);
     return handle ? handle.name : null;
   }
 
   function resizeObjectFromSnapshot(object, snapshot, handle, point) {
+    if ((object.type === 'line' || object.type === 'arrow') && (handle === 'p1' || handle === 'p2')) {
+      if (handle === 'p1') { object.x1 = point.x; object.y1 = point.y; }
+      else { object.x2 = point.x; object.y2 = point.y; }
+      return;
+    }
     const original = getBounds(snapshot);
     let left = original.x, top = original.y, right = original.x + original.w, bottom = original.y + original.h;
     if (handle.includes('w')) left = point.x;
