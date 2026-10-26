@@ -351,6 +351,10 @@
     canvasWorld.style.height = canvas.height + 'px';
     view.panX -= left * view.zoom;
     view.panY -= top * view.zoom;
+    if (view.panStart) {
+      view.panStart.panX -= left * view.zoom;
+      view.panStart.panY -= top * view.zoom;
+    }
     render();
   }
 
