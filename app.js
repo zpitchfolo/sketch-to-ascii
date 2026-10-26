@@ -4,6 +4,7 @@
   const canvas = document.getElementById('drawingCanvas');
   const ctx = canvas.getContext('2d');
   const asciiOutput = document.getElementById('asciiOutput');
+  const asciiPreview = document.getElementById('asciiPreview');
   const descriptor = document.getElementById('descriptor');
   const statusMessage = document.getElementById('statusMessage');
   const undoButton = document.getElementById('undoButton');
@@ -13,7 +14,7 @@
   const canvasWorld = document.querySelector('.canvas-world');
   const asciiViewport = document.querySelector('.ascii-viewport');
   const asciiZoomIndicator = document.querySelector('.ascii-zoom-indicator');
-  const view = { zoom: 0.5, panX: 0, panY: 0, panning: false, panStart: null };
+  const view = { zoom: 0.5, panX: 0, panY: 0, panning: false, panStart: null, centered: false };
   const asciiView = { zoom: 1, panX: 0, panY: 0, panning: false, panStart: null };
 
   const state = {
@@ -210,7 +211,6 @@
 
   function openTextEditor(point, existingObject = null) {
     state.editingTextId = existingObject ? existingObject.id : null;
-    const canvasRect = canvas.getBoundingClientRect();
     const x = existingObject ? existingObject.x : point.x;
     const y = existingObject ? existingObject.y : point.y;
     textEditor.value = existingObject ? existingObject.text : '';
@@ -235,11 +235,9 @@
     if (!commit) { render(); return; }
     if (oldId !== null) {
       const object = getObject(oldId);
-      if (!value.trim()) {
-        saveUndo();
-        state.objects = state.objects.filter(item => item.id !== oldId);
-        if (state.selectedId === oldId) state.selectedId = null;
-      } else if (object && object.text !== value) {
+      // Clicking away from an existing label must never delete it just because
+      // the editor was temporarily emptied or lost focus.
+      if (object && value.trim() && object.text !== value) {
         saveUndo();
         object.text = value;
       }
@@ -296,6 +294,11 @@
   }
 
   function applyViewTransform() {
+    if (!view.centered) {
+      view.panX = (canvasFrame.clientWidth - canvas.width * view.zoom) / 2;
+      view.panY = (canvasFrame.clientHeight - canvas.height * view.zoom) / 2;
+      view.centered = true;
+    }
     canvasWorld.style.transform = `translate(${view.panX}px, ${view.panY}px) scale(${view.zoom})`;
     let indicator = canvasFrame.querySelector('.canvas-zoom-indicator');
     if (!indicator) {
@@ -349,13 +352,23 @@
     }, { passive: false });
   }
 
+  function updateAsciiPreview(value = asciiOutput.value) {
+    const empty = !value;
+    asciiPreview.textContent = empty ? 'Your ASCII drawing will appear here…' : value;
+    asciiPreview.classList.toggle('is-empty', empty);
+  }
+
   function applyAsciiViewTransform() {
-    asciiOutput.style.transform = `translate(${asciiView.panX}px, ${asciiView.panY}px) scale(${asciiView.zoom})`;
+    asciiPreview.style.transform = `translate(${asciiView.panX}px, ${asciiView.panY}px) scale(${asciiView.zoom})`;
     asciiZoomIndicator.textContent = `${Math.round(asciiView.zoom * 100)}%`;
   }
 
+  asciiOutput.addEventListener('input', () => updateAsciiPreview());
+
   attachPanZoom(canvasFrame, view, applyViewTransform);
   attachPanZoom(asciiViewport, asciiView, applyAsciiViewTransform);
+  applyViewTransform();
+  applyAsciiViewTransform();
 
   canvas.addEventListener('pointerdown', event => {
     if (event.button !== 0) return;
@@ -574,6 +587,7 @@
 
   document.getElementById('generateButton').addEventListener('click', () => {
     asciiOutput.value = generateAscii();
+    updateAsciiPreview();
     statusMessage.textContent = 'ASCII generated.';
   });
 
@@ -605,11 +619,17 @@
   }
 
   document.getElementById('copyButton').addEventListener('click', () => {
-    if (!asciiOutput.value) asciiOutput.value = generateAscii();
+    if (!asciiOutput.value) {
+      asciiOutput.value = generateAscii();
+      updateAsciiPreview();
+    }
     copyText(getCombinedText(), 'Copied drawing and descriptor.');
   });
   document.getElementById('copyAsciiButton').addEventListener('click', () => {
-    if (!asciiOutput.value) asciiOutput.value = generateAscii();
+    if (!asciiOutput.value) {
+      asciiOutput.value = generateAscii();
+      updateAsciiPreview();
+    }
     copyText(asciiOutput.value, 'Copied ASCII.');
   });
 
@@ -620,6 +640,7 @@
     state.selectedId = null;
     render();
     asciiOutput.value = '';
+    updateAsciiPreview();
     statusMessage.textContent = 'Canvas cleared.';
   });
   undoButton.addEventListener('click', undo);
