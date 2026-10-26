@@ -10,7 +10,11 @@
   const inkColor = document.getElementById('inkColor');
   const textEditor = document.getElementById('textEditor');
   const canvasFrame = document.querySelector('.canvas-frame');
-  const view = { zoom: 1, panX: 0, panY: 0, panning: false, panStart: null };
+  const canvasWorld = document.querySelector('.canvas-world');
+  const asciiViewport = document.querySelector('.ascii-viewport');
+  const asciiZoomIndicator = document.querySelector('.ascii-zoom-indicator');
+  const view = { zoom: 0.25, panX: 0, panY: 0, panning: false, panStart: null };
+  const asciiView = { zoom: 1, panX: 0, panY: 0, panning: false, panStart: null };
 
   const state = {
     tool: 'select',
@@ -212,12 +216,11 @@
     textEditor.value = existingObject ? existingObject.text : '';
     textEditor.dataset.x = String(x);
     textEditor.dataset.y = String(y);
-    textEditor.style.left = Math.max(4, (x / canvas.width) * canvas.offsetWidth) + 'px';
-    textEditor.style.top = Math.max(4, (y / canvas.height) * canvas.offsetHeight) + 'px';
+    textEditor.style.left = x + 'px';
+    textEditor.style.top = y + 'px';
     textEditor.style.width = Math.max(140, Math.min(320, existingObject ? getBounds(existingObject).w + 24 : 220)) + 'px';
     textEditor.style.height = Math.max(32, existingObject ? getBounds(existingObject).h + 12 : 38) + 'px';
     textEditor.style.fontSize = (existingObject ? fontSize(existingObject) : 16) + 'px';
-    textEditor.style.transform = `translate(${view.panX}px, ${view.panY}px) scale(${view.zoom})`;
     textEditor.hidden = false;
     textEditor.focus();
     textEditor.setSelectionRange(textEditor.value.length, textEditor.value.length);
@@ -293,9 +296,7 @@
   }
 
   function applyViewTransform() {
-    const transform = `translate(${view.panX}px, ${view.panY}px) scale(${view.zoom})`;
-    canvas.style.transform = transform;
-    textEditor.style.transform = transform;
+    canvasWorld.style.transform = `translate(${view.panX}px, ${view.panY}px) scale(${view.zoom})`;
     let indicator = canvasFrame.querySelector('.canvas-zoom-indicator');
     if (!indicator) {
       indicator = document.createElement('div');
@@ -306,45 +307,55 @@
     indicator.textContent = `${Math.round(view.zoom * 100)}%`;
   }
 
-  canvasFrame.addEventListener('pointerdown', event => {
-    if (event.button !== 1) return;
-    event.preventDefault();
-    view.panning = true;
-    view.panStart = { x: event.clientX, y: event.clientY, panX: view.panX, panY: view.panY };
-    canvasFrame.classList.add('is-panning');
-    canvasFrame.setPointerCapture(event.pointerId);
-  });
-  canvasFrame.addEventListener('pointermove', event => {
-    if (!view.panning || !view.panStart) return;
-    view.panX = view.panStart.panX + event.clientX - view.panStart.x;
-    view.panY = view.panStart.panY + event.clientY - view.panStart.y;
-    applyViewTransform();
-  });
-  function endPan(event) {
-    if (!view.panning) return;
-    view.panning = false;
-    view.panStart = null;
-    canvasFrame.classList.remove('is-panning');
-    if (canvasFrame.hasPointerCapture(event.pointerId)) canvasFrame.releasePointerCapture(event.pointerId);
+  function attachPanZoom(element, model, applyTransform) {
+    element.addEventListener('pointerdown', event => {
+      if (event.button !== 1) return;
+      event.preventDefault();
+      model.panning = true;
+      model.panStart = { x: event.clientX, y: event.clientY, panX: model.panX, panY: model.panY };
+      element.classList.add('is-panning');
+      element.setPointerCapture(event.pointerId);
+    });
+    element.addEventListener('pointermove', event => {
+      if (!model.panning || !model.panStart) return;
+      model.panX = model.panStart.panX + event.clientX - model.panStart.x;
+      model.panY = model.panStart.panY + event.clientY - model.panStart.y;
+      applyTransform();
+    });
+    function endPan(event) {
+      if (!model.panning) return;
+      model.panning = false;
+      model.panStart = null;
+      element.classList.remove('is-panning');
+      if (element.hasPointerCapture(event.pointerId)) element.releasePointerCapture(event.pointerId);
+    }
+    element.addEventListener('pointerup', endPan);
+    element.addEventListener('pointercancel', endPan);
+    element.addEventListener('auxclick', event => { if (event.button === 1) event.preventDefault(); });
+    element.addEventListener('contextmenu', event => event.preventDefault());
+    element.addEventListener('wheel', event => {
+      event.preventDefault();
+      const rect = element.getBoundingClientRect();
+      const localX = event.clientX - rect.left;
+      const localY = event.clientY - rect.top;
+      const oldZoom = model.zoom;
+      const nextZoom = Math.max(0.25, Math.min(4, oldZoom * (event.deltaY < 0 ? 1.1 : 1 / 1.1)));
+      const contentX = (localX - model.panX) / oldZoom;
+      const contentY = (localY - model.panY) / oldZoom;
+      model.zoom = nextZoom;
+      model.panX = localX - contentX * nextZoom;
+      model.panY = localY - contentY * nextZoom;
+      applyTransform();
+    }, { passive: false });
   }
-  canvasFrame.addEventListener('pointerup', endPan);
-  canvasFrame.addEventListener('pointercancel', endPan);
-  canvasFrame.addEventListener('auxclick', event => { if (event.button === 1) event.preventDefault(); });
-  canvasFrame.addEventListener('contextmenu', event => event.preventDefault());
-  canvasFrame.addEventListener('wheel', event => {
-    event.preventDefault();
-    const rect = canvasFrame.getBoundingClientRect();
-    const localX = event.clientX - rect.left;
-    const localY = event.clientY - rect.top;
-    const oldZoom = view.zoom;
-    const nextZoom = Math.max(0.25, Math.min(4, oldZoom * (event.deltaY < 0 ? 1.1 : 1 / 1.1)));
-    const canvasX = (localX - view.panX) / oldZoom;
-    const canvasY = (localY - view.panY) / oldZoom;
-    view.zoom = nextZoom;
-    view.panX = localX - canvasX * nextZoom;
-    view.panY = localY - canvasY * nextZoom;
-    applyViewTransform();
-  }, { passive: false });
+
+  function applyAsciiViewTransform() {
+    asciiOutput.style.transform = `translate(${asciiView.panX}px, ${asciiView.panY}px) scale(${asciiView.zoom})`;
+    asciiZoomIndicator.textContent = `${Math.round(asciiView.zoom * 100)}%`;
+  }
+
+  attachPanZoom(canvasFrame, view, applyViewTransform);
+  attachPanZoom(asciiViewport, asciiView, applyAsciiViewTransform);
 
   canvas.addEventListener('pointerdown', event => {
     if (event.button !== 0) return;
@@ -462,10 +473,21 @@
     });
   });
 
+  function getDrawingBounds(objects) {
+    const bounds = objects.map(getBounds);
+    const left = Math.min(0, ...bounds.map(b => b.x));
+    const top = Math.min(0, ...bounds.map(b => b.y));
+    const right = Math.max(1000, ...bounds.map(b => b.x + b.w));
+    const bottom = Math.max(620, ...bounds.map(b => b.y + b.h));
+    return { x: left, y: top, w: right - left, h: bottom - top };
+  }
+
   function mapPoint(point) {
+    const bounds = state.objects.length ? getDrawingBounds(state.objects) : { x: 0, y: 0, w: canvas.width, h: canvas.height };
+    const margin = 3;
     return {
-      x: Math.max(0, Math.min(GRID_COLUMNS - 1, Math.round(point.x / canvas.width * (GRID_COLUMNS - 1)))),
-      y: Math.max(0, Math.min(GRID_ROWS - 1, Math.round(point.y / canvas.height * (GRID_ROWS - 1))))
+      x: margin + Math.round((point.x - bounds.x) / Math.max(1, bounds.w) * (GRID_COLUMNS - 1 - margin * 2)),
+      y: margin + Math.round((point.y - bounds.y) / Math.max(1, bounds.h) * (GRID_ROWS - 1 - margin * 2))
     };
   }
 
@@ -618,5 +640,6 @@
   });
 
   applyViewTransform();
+  applyAsciiViewTransform();
   render();
 })();
