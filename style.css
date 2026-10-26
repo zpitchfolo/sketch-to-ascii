@@ -99,7 +99,7 @@ textarea::placeholder { color: #a2a5b0; }
   .drawing-column, .output-column { min-height: 0; overflow: hidden; }
   .drawing-column { padding: 12px; }
   .toolbar { padding-bottom: 8px; }
-  .canvas-frame, .canvas-frame#unused { min-height: 0; }
+  .canvas-frame { min-height: 0; }
   .canvas-footer { padding-top: 8px; }
   .output-column { padding: 14px; }
   .section-description { margin: 6px 0 10px; line-height: 1.4; }
@@ -111,7 +111,6 @@ textarea::placeholder { color: #a2a5b0; }
   .output-actions .button { min-height: 36px; padding: 7px 9px; font-size: 12px; }
   .status-message { min-height: 12px; margin-top: 6px; }
   .app-footer { flex: 0 0 auto; padding-top: 7px; }
-  @media (min-width: 1000px) { .canvas-frame { min-height: 0; } }
 }
 
 /* Keep the stacked layout usable on narrow screens, where one-screen
