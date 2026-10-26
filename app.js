@@ -37,8 +37,8 @@
     nextId: 1
   };
 
-  const GRID_COLUMNS = 100;
-  const GRID_ROWS = 36;
+  const MAX_GRID_COLUMNS = 140;
+  const MAX_GRID_ROWS = 60;
   const FONT = '16px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
 
   function cloneObjects(objects) {
@@ -413,7 +413,7 @@
       const localX = event.clientX - rect.left;
       const localY = event.clientY - rect.top;
       const oldZoom = model.zoom;
-      const nextZoom = Math.max(0.1, Math.min(4, oldZoom * (event.deltaY < 0 ? 1.1 : 1 / 1.1)));
+      const nextZoom = Math.max(0.1, Math.min(32, oldZoom * (event.deltaY < 0 ? 1.15 : 1 / 1.15)));
       const contentX = (localX - model.panX) / oldZoom;
       const contentY = (localY - model.panY) / oldZoom;
       model.zoom = nextZoom;
@@ -589,26 +589,41 @@
 
   function getDrawingBounds(objects) {
     const bounds = objects.map(getBounds);
-    const left = Math.min(0, ...bounds.map(b => b.x));
-    const top = Math.min(0, ...bounds.map(b => b.y));
-    const right = Math.max(1000, ...bounds.map(b => b.x + b.w));
-    const bottom = Math.max(620, ...bounds.map(b => b.y + b.h));
-    return { x: left, y: top, w: right - left, h: bottom - top };
+    if (!bounds.length) return { x: 0, y: 0, w: 1000, h: 620 };
+    const left = Math.min(...bounds.map(b => b.x));
+    const top = Math.min(...bounds.map(b => b.y));
+    const right = Math.max(...bounds.map(b => b.x + b.w));
+    const bottom = Math.max(...bounds.map(b => b.y + b.h));
+    const padding = Math.max(18, Math.max(right - left, bottom - top) * 0.04);
+    return { x: left - padding, y: top - padding, w: Math.max(1, right - left) + padding * 2, h: Math.max(1, bottom - top) + padding * 2 };
   }
 
+  function getGridSize(bounds) {
+    const characterAspect = 1.7;
+    const ratio = Math.max(0.15, Math.min(12, bounds.w / Math.max(1, bounds.h) * characterAspect));
+    let columns = MAX_GRID_COLUMNS;
+    let rows = Math.round(columns / ratio);
+    if (rows > MAX_GRID_ROWS) { rows = MAX_GRID_ROWS; columns = Math.round(rows * ratio); }
+    columns = Math.max(24, Math.min(MAX_GRID_COLUMNS, columns));
+    rows = Math.max(12, Math.min(MAX_GRID_ROWS, rows));
+    return { columns, rows };
+  }
+
+  let conversion = { bounds: { x: 0, y: 0, w: 1000, h: 620 }, columns: MAX_GRID_COLUMNS, rows: 36 };
+
   function mapPoint(point) {
-    const bounds = state.objects.length ? getDrawingBounds(state.objects) : { x: 0, y: 0, w: canvas.width, h: canvas.height };
-    const margin = 3;
+    const { bounds, columns, rows } = conversion;
+    const margin = 2;
     return {
-      x: margin + Math.round((point.x - bounds.x) / Math.max(1, bounds.w) * (GRID_COLUMNS - 1 - margin * 2)),
-      y: margin + Math.round((point.y - bounds.y) / Math.max(1, bounds.h) * (GRID_ROWS - 1 - margin * 2))
+      x: margin + Math.round((point.x - bounds.x) / Math.max(1, bounds.w) * (columns - 1 - margin * 2)),
+      y: margin + Math.round((point.y - bounds.y) / Math.max(1, bounds.h) * (rows - 1 - margin * 2))
     };
   }
 
-  function makeGrid() { return Array.from({ length: GRID_ROWS }, () => Array(GRID_COLUMNS).fill(' ')); }
+  function makeGrid() { return Array.from({ length: conversion.rows }, () => Array(conversion.columns).fill(' ')); }
   function put(grid, x, y, char) {
     x = Math.round(x); y = Math.round(y);
-    if (y >= 0 && y < GRID_ROWS && x >= 0 && x < GRID_COLUMNS) grid[y][x] = char;
+    if (y >= 0 && y < conversion.rows && x >= 0 && x < conversion.columns) grid[y][x] = char;
   }
 
   function plotLine(grid, a, b, char) {
@@ -642,9 +657,9 @@
       const a = mapPoint({ x: object.x, y: object.y });
       const b = mapPoint({ x: object.x + object.w, y: object.y + object.h });
       if (b.x - a.x < 2 || b.y - a.y < 2) { plotLine(grid, a, b, '-'); return; }
-      for (let x = a.x + 1; x < b.x; x++) { put(grid, x, a.y, '-'); put(grid, x, b.y, '-'); }
-      for (let y = a.y + 1; y < b.y; y++) { put(grid, a.x, y, '|'); put(grid, b.x, y, '|'); }
-      put(grid, a.x, a.y, '+'); put(grid, b.x, a.y, '+'); put(grid, a.x, b.y, '+'); put(grid, b.x, b.y, '+');
+      for (let x = a.x + 1; x < b.x; x++) { put(grid, x, a.y, '─'); put(grid, x, b.y, '─'); }
+      for (let y = a.y + 1; y < b.y; y++) { put(grid, a.x, y, '│'); put(grid, b.x, y, '│'); }
+      put(grid, a.x, a.y, '┌'); put(grid, b.x, a.y, '┐'); put(grid, a.x, b.y, '└'); put(grid, b.x, b.y, '┘');
       return;
     }
     if (object.type === 'line' || object.type === 'arrow') {
@@ -676,6 +691,8 @@
   }
 
   function generateAscii() {
+    conversion.bounds = getDrawingBounds(state.objects);
+    Object.assign(conversion, getGridSize(conversion.bounds));
     const grid = makeGrid();
     // Text is rendered last so labels remain visible over intersecting shapes.
     state.objects.filter(object => object.type !== 'text').forEach(object => drawObjectToGrid(grid, object));
