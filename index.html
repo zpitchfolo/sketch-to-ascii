@@ -12,7 +12,7 @@
       <div class="brand-mark" aria-hidden="true">#</div>
       <div class="brand-copy">
         <h1>SketchText</h1>
-        <p>Draw it. Turn it into text. Paste it into chat.</p>
+        <p>Draw it. Turn it into text.</p>
       </div>
       <button id="clearButton" class="button button-quiet" type="button">Clear canvas</button>
     </header>
@@ -49,14 +49,14 @@
           </div>
           <span class="status-dot" aria-hidden="true"></span>
         </div>
-        <p class="section-description">Generate a text version of your sketch. The result is plain text, ready to paste into chat.</p>
+        <p class="section-description">Generate a text version of your sketch. Copy the drawing alone or include your optional descriptor.</p>
         <button id="generateButton" class="button button-primary" type="button">Generate ASCII</button>
         <label class="field-label" for="asciiOutput">Generated drawing</label>
         <textarea id="asciiOutput" class="ascii-output" spellcheck="false" placeholder="Your ASCII drawing will appear here…" aria-label="Generated ASCII drawing"></textarea>
         <label class="field-label" for="descriptor">Descriptor <span class="optional">optional</span></label>
         <textarea id="descriptor" class="descriptor" rows="3" placeholder="Explain anything the drawing alone doesn't show…"></textarea>
         <div class="output-actions">
-          <button id="copyButton" class="button button-primary" type="button">Copy to Chat</button>
+          <button id="copyButton" class="button button-primary" type="button">Copy Drawing + Descriptor</button>
           <button id="copyAsciiButton" class="button button-secondary" type="button">Copy ASCII</button>
         </div>
         <p id="statusMessage" class="status-message" role="status" aria-live="polite">Nothing copied yet.</p>
