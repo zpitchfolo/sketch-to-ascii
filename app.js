@@ -3,7 +3,6 @@
 
   const canvas = document.getElementById('drawingCanvas');
   const ctx = canvas.getContext('2d');
-  const asciiOutput = document.getElementById('asciiOutput');
   const asciiPreview = document.getElementById('asciiPreview');
   const descriptor = document.getElementById('descriptor');
   const statusMessage = document.getElementById('statusMessage');
@@ -15,6 +14,7 @@
   const asciiViewport = document.querySelector('.ascii-viewport');
   const asciiZoomIndicator = document.querySelector('.ascii-zoom-indicator');
   const asciiPreviewContext = asciiPreview.getContext('2d');
+  let generatedAscii = '';
   let asciiPreviewText = '';
   const view = { zoom: 0.5, panX: 0, panY: 0, panning: false, panStart: null, centered: false };
   const asciiView = { zoom: 1, panX: 0, panY: 0, panning: false, panStart: null };
@@ -263,6 +263,13 @@
   }
 
   function hitTest(point) {
+    // Prioritize text so overlapping shapes never make labels inaccessible.
+    for (let index = state.objects.length - 1; index >= 0; index--) {
+      const object = state.objects[index];
+      if (object.type !== 'text') continue;
+      const b = getBounds(object);
+      if (point.x >= b.x - 7 && point.x <= b.x + b.w + 7 && point.y >= b.y - 7 && point.y <= b.y + b.h + 7) return object;
+    }
     for (let index = state.objects.length - 1; index >= 0; index--) {
       const object = state.objects[index];
       const b = getBounds(object);
@@ -417,7 +424,7 @@
     }, { passive: false });
   }
 
-  function updateAsciiPreview(value = asciiOutput.value) {
+  function updateAsciiPreview(value = generatedAscii) {
     asciiPreviewText = value || 'Your ASCII drawing will appear here…';
     asciiPreview.classList.toggle('is-empty', !value);
     applyAsciiViewTransform();
@@ -452,7 +459,6 @@
 
   window.addEventListener('resize', applyAsciiViewTransform);
 
-  asciiOutput.addEventListener('input', () => updateAsciiPreview());
   updateAsciiPreview();
 
   attachPanZoom(canvasFrame, view, applyViewTransform);
@@ -671,7 +677,9 @@
 
   function generateAscii() {
     const grid = makeGrid();
-    state.objects.forEach(object => drawObjectToGrid(grid, object));
+    // Text is rendered last so labels remain visible over intersecting shapes.
+    state.objects.filter(object => object.type !== 'text').forEach(object => drawObjectToGrid(grid, object));
+    state.objects.filter(object => object.type === 'text').forEach(object => drawObjectToGrid(grid, object));
     let top = 0, bottom = grid.length - 1;
     while (top < grid.length && grid[top].every(char => char === ' ')) top++;
     while (bottom >= top && grid[bottom].every(char => char === ' ')) bottom--;
@@ -681,13 +689,13 @@
   }
 
   document.getElementById('generateButton').addEventListener('click', () => {
-    asciiOutput.value = generateAscii();
+    generatedAscii = generateAscii();
     updateAsciiPreview();
     statusMessage.textContent = 'ASCII generated.';
   });
 
   function getCombinedText() {
-    const drawing = asciiOutput.value || generateAscii();
+    const drawing = generatedAscii || generateAscii();
     const note = descriptor.value.trim();
     return note ? `${drawing}\n\nDescription:\n${note}` : drawing;
   }
@@ -709,23 +717,23 @@
       }
       statusMessage.textContent = successMessage;
     } catch (error) {
-      statusMessage.textContent = 'Copy failed. Select the text output and copy it manually.';
+      statusMessage.textContent = 'Copy failed. Your browser blocked clipboard access; try allowing clipboard access and copying again.';
     }
   }
 
   document.getElementById('copyButton').addEventListener('click', () => {
-    if (!asciiOutput.value) {
-      asciiOutput.value = generateAscii();
+    if (!generatedAscii) {
+      generatedAscii = generateAscii();
       updateAsciiPreview();
     }
     copyText(getCombinedText(), 'Copied drawing and descriptor.');
   });
   document.getElementById('copyAsciiButton').addEventListener('click', () => {
-    if (!asciiOutput.value) {
-      asciiOutput.value = generateAscii();
+    if (!generatedAscii) {
+      generatedAscii = generateAscii();
       updateAsciiPreview();
     }
-    copyText(asciiOutput.value, 'Copied ASCII.');
+    copyText(generatedAscii, 'Copied ASCII.');
   });
 
   document.getElementById('clearButton').addEventListener('click', () => {
@@ -734,7 +742,7 @@
     state.objects = [];
     state.selectedId = null;
     render();
-    asciiOutput.value = '';
+    generatedAscii = '';
     updateAsciiPreview();
     statusMessage.textContent = 'Canvas cleared.';
   });
