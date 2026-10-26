@@ -42,7 +42,9 @@ h1 { font-size: 21px; letter-spacing: -0.035em; }
 .canvas-frame.is-panning #drawingCanvas { cursor: grabbing; }
 .canvas-zoom-indicator, .ascii-zoom-indicator { position: absolute; top: 10px; right: 10px; z-index: 3; padding: 4px 7px; border: 1px solid #e1e2e9; border-radius: 6px; background: rgb(255 255 255 / 90%); color: #646879; font-size: 11px; pointer-events: none; }
 .ascii-viewport { position: relative; height: 260px; min-height: 200px; overflow: hidden; border: 1px solid var(--line); border-radius: 9px; background: #fcfcfe; touch-action: none; }
-.ascii-output { position: absolute; top: 0; left: 0; width: 100%; height: 100%; min-height: 0; padding: 12px; border: 0; border-radius: 0; resize: none; transform-origin: 0 0; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 11px; line-height: 1.5; white-space: pre; tab-size: 2; }
+.ascii-preview { position: absolute; top: 0; left: 0; min-width: 100%; min-height: 100%; width: max-content; margin: 0; padding: 12px; transform-origin: 0 0; color: var(--ink); font: 11px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; white-space: pre; tab-size: 2; pointer-events: none; }
+.ascii-preview.is-empty { color: #a2a5b0; }
+.ascii-output { display: block; width: 100%; min-height: 145px; margin-top: 8px; padding: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 11px; line-height: 1.5; white-space: pre; tab-size: 2; resize: vertical; }
 .ascii-zoom-indicator { top: auto; bottom: 8px; right: 8px; }
 .canvas-hint { position: absolute; bottom: 12px; left: 13px; padding: 5px 8px; border: 1px solid #e8e9ef; border-radius: 6px; background: rgb(255 255 255 / 88%); color: #858997; font-size: 11px; pointer-events: none; }
 .canvas-footer { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; padding-top: 12px; color: var(--muted); font-size: 11px; }
@@ -64,7 +66,7 @@ h2 { font-size: 20px; letter-spacing: -.03em; }
 .field-label { display: block; margin: 18px 0 8px; font-size: 12px; font-weight: 750; }
 .optional { margin-left: 4px; color: #8b8f9d; font-size: 11px; font-weight: 400; }
 textarea { width: 100%; resize: vertical; border: 1px solid var(--line); border-radius: 9px; background: #fcfcfe; color: var(--ink); font-size: 12px; line-height: 1.5; }
-.ascii-output { min-height: 235px; flex: 1; padding: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 11px; white-space: pre; tab-size: 2; }
+.ascii-output { min-height: 145px; flex: 0 0 auto; padding: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 11px; white-space: pre; tab-size: 2; }
 .descriptor { min-height: 72px; padding: 10px 12px; }
 textarea::placeholder { color: #a2a5b0; }
 .output-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
