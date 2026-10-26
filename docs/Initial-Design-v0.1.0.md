@@ -17,11 +17,12 @@ The ASCII drawing is the primary output. The descriptor is optional context, not
 ### Initial goals
 
 - Freehand drawing, rectangles, lines, arrows, and text labels.
-- Select and move drawn objects; clear the canvas and undo the last action.
+- Select, move, and resize drawn objects; clear the canvas and undo the last action.
+- Edit text inline, pan with the middle mouse button, and zoom with the mouse wheel.
 - Generate a text-based visual representation of the drawing.
 - Preserve spatial relationships and recognizable layout as well as practical.
 - Optionally add a descriptor beneath the ASCII drawing.
-- Copy ASCII alone or ASCII plus descriptor as plain text.
+- Copy ASCII alone or the drawing plus optional descriptor as plain text.
 - Run locally in a modern browser without a backend, account, or AI service.
 
 ### Explicitly out of scope for the first version
@@ -34,7 +35,7 @@ The ASCII drawing is the primary output. The descriptor is optional context, not
 
 ## 3. User experience
 
-The interface has a compact toolbar, drawing canvas, ASCII output area, optional descriptor field, and copy actions. The canvas is the main workspace. The user explicitly generates the ASCII output, inspects it, optionally adds context, then copies it.
+The interface has a compact toolbar, drawing canvas, ASCII output area, optional descriptor field, and two copy actions. Middle-mouse dragging pans the canvas, and the mouse wheel zooms around the pointer. The canvas is the main workspace. The user explicitly generates the ASCII output, inspects it, optionally adds context, then copies it.
 
 ASCII output must be actual visual text, not merely a list of detected objects. It should use a consistent character grid and line breaks. The conversion is an approximation: curves, diagonals, and small details may be simplified.
 
@@ -160,6 +161,7 @@ Development artifacts as needed:
 
 - The descriptor is optional.
 - The user can copy ASCII only or the drawing plus descriptor.
+- The drawing canvas can be panned with middle-mouse dragging and zoomed with the mouse wheel.
 - The combined output separates the descriptor clearly.
 - Clipboard failure produces understandable feedback and a manual-copy fallback.
 
