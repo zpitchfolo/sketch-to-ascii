@@ -33,6 +33,9 @@ Open `index.html` in a modern browser. No build step, backend, account, or AI se
 - Browser clipboard permissions vary by browser and how the file is opened; a manual-copy fallback is included.
 - The canvas and drawing are held in memory. Persistence is not implemented.
 
-## Working document
+## Current design and maintenance records
 
-See [Working-Copy.md](docs/Working-Copy.md) for the current design, implementation decisions, and verification status. Use Git history and diffs to compare earlier versions.
+- [Design refinement v0.4.0](docs/Design-Refinement-v0.4.0.md)
+- [Maintenance v0.9.0](docs/Maintenance-v0.9.0.md)
+
+These are the current working documents. Update them in place according to the established development workflow; use Git history and `git diff` for comparisons rather than creating parallel copies.
