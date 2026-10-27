@@ -1,8 +1,8 @@
-# SketchText Design Refinement v0.5.0
+# SketchText Design Refinement v0.6.0
 
 **Artifact:** Chat-sized output and intersection-aware line art  
-**Version:** 0.5.0  
-**Status:** Updated candidate; runtime acceptance checks pending  
+**Version:** 0.6.0  
+**Status:** Implementation candidate; runtime acceptance checks pending  
 **Date:** 2026-10-27  
 **Base design:** Earlier refinement retained in Git history  
 **Development workflow:** Development State Machine Workflow v1.5.0  
@@ -89,6 +89,22 @@ Use [ASCIIFlow](https://asciiflow.com/) as prior art for the grid-based drawing 
 
 ## Implementation
 
+Implemented in the current candidate:
+
+- Structural line and arrow endpoints snap to the visible 36-pixel drawing grid and constrain the stroke to horizontal or vertical orientation, including when resizing line endpoints.
+- Added an X-mark object/tool. It is visually editable as a shape and exports as an `X` character at its center.
+- The generated text output and visual preview refresh during drawing and editing, including the active draft stroke.
+- Added a live text output pane that displays the actual generated characters and whitespace.
+- Added a draggable desktop divider to resize the drawing and output panes independently; pane resizing does not alter drawing coordinates.
+
+Still planned and not implemented:
+
+- Drag-resizable output frame with exact numeric width and height in character columns and lines.
+- Explicit overflow reporting against that frame.
+- Destination profiles and destination-specific wrapping/code-fence settings.
+
+Renderer details:
+
 - `MAX_GRID_COLUMNS` and `MAX_GRID_ROWS` define conservative output limits.
 - `getGridSize(bounds)` computes output dimensions within those limits.
 - `mapPoint(point)` adapts margins to small grids.
@@ -97,7 +113,7 @@ Use [ASCIIFlow](https://asciiflow.com/) as prior art for the grid-based drawing 
 - Rectangles and horizontal/vertical line segments use edge masks.
 - Text is rendered last, preserving label readability.
 
-The grid-based drawing interaction, resizable panes/output frame, live preview, and destination-profile features above are design-only; no implementation changes are implied by their inclusion here.
+The grid-based drawing interaction, resizable workspace panes, and live text output are implemented in the current candidate. The numeric output frame, explicit overflow reporting, and destination-profile features remain design-only.
 
 ## Acceptance criteria
 
@@ -112,4 +128,4 @@ The grid-based drawing interaction, resizable panes/output frame, live preview, 
 
 ## Verification state
 
-Source checks previously confirmed the fixed drawing scale and wheel guard, minimum footprints for tiny rectangles and collapsed line/arrow endpoints, configured output limits, edge-mask resolver, rectangle edge tracking, axis-aligned line tracking, adaptive margins, and JavaScript syntax. Live browser rendering, output-width measurement in multiple chat clients, and interaction regression tests remain pending. The proposed ASCIIFlow-inspired grid interaction, resizable workspace panes, draggable and numerically sized output frame, live text preview, and destination profiles have not been implemented or tested. The current prototype still has its existing approximate freehand/diagonal behavior; this design update does not change the app. This candidate is not accepted until the relevant tests pass.
+Source checks previously confirmed the fixed drawing scale and wheel guard, minimum footprints for tiny rectangles and collapsed line/arrow endpoints, configured output limits, edge-mask resolver, rectangle edge tracking, axis-aligned line tracking, adaptive margins, and JavaScript syntax. Live browser rendering, output-width measurement in multiple chat clients, and interaction regression tests remain pending. The current candidate implements grid-snapped structural lines/arrows, X marks, live text output, and a draggable desktop pane divider. The numeric output frame, explicit overflow reporting, and destination profiles remain unimplemented. Source-level consistency checks were performed after editing, but JavaScript syntax checks and browser interaction tests have not been run in an application runtime. This candidate is not accepted until the relevant tests pass.
