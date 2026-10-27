@@ -23,7 +23,10 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 h1, h2, p { margin: 0; }
 h1 { font-size: 21px; letter-spacing: -0.035em; }
 .brand-copy p { margin-top: 3px; color: var(--muted); font-size: 13px; }
-.workspace { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(320px, .85fr); gap: 20px; align-items: stretch; }
+.workspace { display: grid; grid-template-columns: minmax(280px, 1.65fr) 10px minmax(300px, .85fr); gap: 10px; align-items: stretch; }
+.workspace-divider { position: relative; cursor: col-resize; touch-action: none; border-radius: 8px; background: transparent; }
+.workspace-divider::after { content: ''; position: absolute; top: 12%; bottom: 12%; left: 4px; width: 2px; border-radius: 2px; background: #d7d8e2; }
+.workspace-divider:hover::after, .workspace-divider:focus-visible::after { background: var(--accent); }
 .drawing-column, .output-column { min-width: 0; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); box-shadow: 0 5px 22px rgb(29 32 48 / 4%); }
 .drawing-column { padding: 16px; display: flex; flex-direction: column; }
 .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding-bottom: 14px; }
@@ -41,7 +44,8 @@ h1 { font-size: 21px; letter-spacing: -0.035em; }
 .canvas-frame.is-panning, .ascii-viewport.is-panning { cursor: grabbing; }
 .canvas-frame.is-panning #drawingCanvas { cursor: grabbing; }
 .ascii-zoom-indicator { position: absolute; top: auto; bottom: 8px; right: 8px; z-index: 3; padding: 4px 7px; border: 1px solid #e1e2e9; border-radius: 6px; background: rgb(255 255 255 / 90%); color: #646879; font-size: 11px; pointer-events: none; }
-.ascii-viewport { position: relative; height: 260px; min-height: 200px; overflow: hidden; border: 1px solid var(--line); border-radius: 9px; background: #fcfcfe; touch-action: none; }
+.ascii-text-output { flex: 0 1 170px; min-height: 90px; max-height: 34vh; overflow: auto; margin: 0; padding: 10px; border: 1px solid var(--line); border-radius: 9px; background: #fcfcfe; color: var(--ink); font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre; tab-size: 2; }
+.ascii-viewport { position: relative; height: 260px; min-height: 160px; overflow: hidden; border: 1px solid var(--line); border-radius: 9px; background: #fcfcfe; touch-action: none; }
 .ascii-preview { position: absolute; inset: 0; display: block; width: 100%; height: 100%; pointer-events: none; }
 .ascii-preview.is-empty { color: #a2a5b0; }
 .canvas-hint { position: absolute; bottom: 12px; left: 13px; padding: 5px 8px; border: 1px solid #e8e9ef; border-radius: 6px; background: rgb(255 255 255 / 88%); color: #858997; font-size: 11px; pointer-events: none; }
@@ -71,7 +75,7 @@ textarea::placeholder { color: #a2a5b0; }
 .status-message { min-height: 16px; margin-top: 10px; color: var(--muted); font-size: 11px; }
 .app-footer { padding: 18px 4px 0; color: #8b8f9d; text-align: center; font-size: 11px; }
 @media (min-width: 1000px) { .canvas-frame { min-height: 580px; } }
-@media (max-width: 900px) { .app-shell { padding: 16px; } .workspace { grid-template-columns: 1fr; } .output-column { min-height: 600px; } .canvas-frame, #drawingCanvas { min-height: 420px; } }
+@media (max-width: 900px) { .app-shell { padding: 16px; } .workspace { grid-template-columns: 1fr; } .workspace-divider { display: none; } .output-column { min-height: 600px; } .canvas-frame, #drawingCanvas { min-height: 420px; } }
 @media (max-width: 480px) { .app-shell { padding: 10px; } .drawing-column, .output-column { padding: 12px; } .tool-button { padding: 7px; } .tool-button > span { font-size: 11px; } .output-actions { grid-template-columns: 1fr; } .topbar { gap: 10px; } .brand-copy p { max-width: 210px; line-height: 1.4; } }
 
 /* Single-screen desktop layout: keep the app chrome fixed to the viewport. */
@@ -91,8 +95,9 @@ textarea::placeholder { color: #a2a5b0; }
     flex: 1 1 auto;
     min-height: 0;
     overflow: hidden;
-    gap: 14px;
+    gap: 8px;
   }
+  .workspace-divider { margin: 0 -2px; }
   .drawing-column, .output-column { min-height: 0; overflow: hidden; }
   .drawing-column { padding: 12px; }
   .toolbar { padding-bottom: 8px; }
@@ -101,6 +106,7 @@ textarea::placeholder { color: #a2a5b0; }
   .output-column { padding: 14px; }
   .section-description { margin: 6px 0 10px; line-height: 1.4; }
   .field-label { margin: 9px 0 5px; }
+  .ascii-text-output { flex: 0 1 22vh; max-height: 26vh; min-height: 56px; }
   .ascii-viewport { flex: 1 1 110px; height: auto; min-height: 70px; }
   .descriptor { min-height: 38px; max-height: 12vh; resize: none; }
   .output-actions { gap: 7px; margin-top: 8px; }
@@ -116,4 +122,5 @@ textarea::placeholder { color: #a2a5b0; }
   .app-shell { display: block; height: auto; min-height: 100vh; overflow: visible; }
   .workspace { overflow: visible; }
   .drawing-column, .output-column { overflow: visible; }
+  .ascii-text-output { max-height: 360px; }
 }
