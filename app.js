@@ -37,8 +37,9 @@
     nextId: 1
   };
 
-  const MAX_GRID_COLUMNS = 140;
-  const MAX_GRID_ROWS = 60;
+  // Conservative plain-text limits: designed to fit typical chat panes without horizontal scrolling.
+  const MAX_GRID_COLUMNS = 72;
+  const MAX_GRID_ROWS = 28;
   const FONT = '16px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
 
   function cloneObjects(objects) {
@@ -599,13 +600,13 @@
   }
 
   function getGridSize(bounds) {
-    // One shared scale keeps the grid's character aspect close to the drawing's
-    // physical aspect. Independent minimums can stretch very wide or tall art.
+    // Use one scale and no artificial minimum dimensions so the output fits
+    // conservative chat-pane limits without stretching extreme aspect ratios.
     const characterAspect = 1.7;
-    const ratio = Math.max(0.15, Math.min(12, bounds.w / Math.max(1, bounds.h) * characterAspect));
+    const ratio = Math.max(0.05, Math.min(24, bounds.w / Math.max(1, bounds.h) * characterAspect));
     const scale = Math.min(MAX_GRID_ROWS, MAX_GRID_COLUMNS / ratio);
-    const rows = Math.max(8, Math.min(MAX_GRID_ROWS, Math.round(scale)));
-    const columns = Math.max(8, Math.min(MAX_GRID_COLUMNS, Math.round(rows * ratio)));
+    const rows = Math.max(1, Math.min(MAX_GRID_ROWS, Math.round(scale)));
+    const columns = Math.max(1, Math.min(MAX_GRID_COLUMNS, Math.round(rows * ratio)));
     return { columns, rows };
   }
 
@@ -620,10 +621,37 @@
     };
   }
 
-  function makeGrid() { return Array.from({ length: conversion.rows }, () => Array(conversion.columns).fill(' ')); }
+  const EDGE = { left: 1, right: 2, up: 4, down: 8 };
+  const EDGE_GLYPHS = {
+    1: '╴', 2: '╶', 3: '─', 4: '╵', 5: '┘', 6: '└', 7: '┴',
+    8: '╷', 9: '┐', 10: '┌', 11: '┬', 12: '│', 13: '┤', 14: '├', 15: '┼'
+  };
+
+  function makeGrid() {
+    const grid = Array.from({ length: conversion.rows }, () => Array(conversion.columns).fill(' '));
+    grid.edges = Array.from({ length: conversion.rows }, () => Array(conversion.columns).fill(0));
+    return grid;
+  }
+
   function put(grid, x, y, char) {
     x = Math.round(x); y = Math.round(y);
-    if (y >= 0 && y < conversion.rows && x >= 0 && x < conversion.columns) grid[y][x] = char;
+    if (y >= 0 && y < conversion.rows && x >= 0 && x < conversion.columns) {
+      if (grid.edges[y][x] && char !== ' ' && !['-', '|', '─', '│'].includes(char)) {
+        if (char === '/' || char === '\\') grid[y][x] = char === '/' ? '╱' : '╲';
+        else grid[y][x] = char;
+      } else if (!grid.edges[y][x] || char === ' ' || char === '/' || char === '\\') {
+        grid[y][x] = char;
+      }
+    }
+  }
+
+  function putEdge(grid, x, y, directions) {
+    x = Math.round(x); y = Math.round(y);
+    if (y < 0 || y >= conversion.rows || x < 0 || x >= conversion.columns) return;
+    let mask = grid.edges[y][x];
+    directions.forEach(direction => { mask |= EDGE[direction]; });
+    grid.edges[y][x] = mask;
+    grid[y][x] = EDGE_GLYPHS[mask] || '┼';
   }
 
   function plotLine(grid, a, b, char) {
@@ -631,9 +659,18 @@
     const dx = Math.abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
     const dy = -Math.abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
     let error = dx + dy;
+    const isHorizontal = y0 === y1;
+    const isVertical = x0 === x1;
+    const startX = x0, startY = y0;
     while (true) {
-      const chosen = Math.abs(x1 - x0) > Math.abs(y1 - y0) ? (char === '|' ? '-' : char) : (char === '-' ? '|' : char);
-      put(grid, x0, y0, chosen);
+      if (isHorizontal) {
+        putEdge(grid, x0, y0, ['left', 'right']);
+      } else if (isVertical) {
+        putEdge(grid, x0, y0, ['up', 'down']);
+      } else {
+        const chosen = Math.abs(x1 - startX) > Math.abs(y1 - startY) ? (char === '|' ? '-' : char) : (char === '-' ? '|' : char);
+        put(grid, x0, y0, chosen);
+      }
       if (x0 === x1 && y0 === y1) break;
       const e2 = 2 * error;
       if (e2 >= dy) { error += dy; x0 += sx; }
@@ -657,9 +694,12 @@
       const a = mapPoint({ x: object.x, y: object.y });
       const b = mapPoint({ x: object.x + object.w, y: object.y + object.h });
       if (b.x - a.x < 2 || b.y - a.y < 2) { plotLine(grid, a, b, '-'); return; }
-      for (let x = a.x + 1; x < b.x; x++) { put(grid, x, a.y, '─'); put(grid, x, b.y, '─'); }
-      for (let y = a.y + 1; y < b.y; y++) { put(grid, a.x, y, '│'); put(grid, b.x, y, '│'); }
-      put(grid, a.x, a.y, '┌'); put(grid, b.x, a.y, '┐'); put(grid, a.x, b.y, '└'); put(grid, b.x, b.y, '┘');
+      for (let x = a.x + 1; x < b.x; x++) { putEdge(grid, x, a.y, ['left', 'right']); putEdge(grid, x, b.y, ['left', 'right']); }
+      for (let y = a.y + 1; y < b.y; y++) { putEdge(grid, a.x, y, ['up', 'down']); putEdge(grid, b.x, y, ['up', 'down']); }
+      putEdge(grid, a.x, a.y, ['right', 'down']);
+      putEdge(grid, b.x, a.y, ['left', 'down']);
+      putEdge(grid, a.x, b.y, ['right', 'up']);
+      putEdge(grid, b.x, b.y, ['left', 'up']);
       return;
     }
     if (object.type === 'line' || object.type === 'arrow') {
