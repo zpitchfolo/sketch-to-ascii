@@ -4,7 +4,7 @@
 **Version:** 0.4.0  
 **Status:** Updated candidate; runtime acceptance checks pending  
 **Date:** 2026-10-26  
-**Base design:** `Design-Refinement-v0.3.0.md`  
+**Base design:** Earlier refinement retained in Git history  
 **Development workflow:** Development State Machine Workflow v1.3.0  
 https://github.com/zpitchfolo/Meta-Modules/blob/main/workflows/Development-State-Machine-Workflow-v1.3.0.md
 
