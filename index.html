@@ -35,7 +35,7 @@
             <canvas id="drawingCanvas" width="4000" height="2500" aria-label="Drawing canvas"></canvas>
             <textarea id="textEditor" class="canvas-text-editor" aria-label="Edit canvas text" rows="1" hidden></textarea>
           </div>
-          <div class="canvas-hint">Choose a tool. Middle-drag to pan · wheel to zoom.</div>
+          <div class="canvas-hint">Choose a tool. Middle-drag to pan · fixed drawing scale.</div>
         </div>
         <div class="canvas-footer">
           <span>Tip: rectangles, arrows, and labels tend to convert cleanly.</span>
@@ -53,7 +53,7 @@
         </div>
         <p class="section-description">Generate a text version of your sketch. Copy the drawing alone or include your optional descriptor.</p>
         <button id="generateButton" class="button button-primary" type="button">Generate ASCII</button>
-        <p class="field-label">Preview <span class="optional">middle-drag to pan · wheel to zoom</span></p>
+        <p class="field-label">Preview <span class="optional">middle-drag to pan · fixed drawing scale</span></p>
         <div class="ascii-viewport" aria-label="ASCII preview viewport">
           <canvas id="asciiPreview" class="ascii-preview is-empty" aria-label="Zoomable visual preview of generated ASCII"></canvas>
           <span class="ascii-zoom-indicator" aria-hidden="true">100%</span>
