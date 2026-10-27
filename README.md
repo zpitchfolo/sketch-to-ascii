@@ -8,35 +8,31 @@ Open `index.html` in a modern browser. No build step, backend, account, or AI se
 
 ## Current prototype
 
-- Freehand drawing
-- Rectangles, lines, arrows, and text labels
+- Freehand drawing, rectangles, lines, arrows, and text labels
 - Select, move, and resize existing objects with visible handles
 - Enter and edit text directly on the canvas in an inline text box
-- Draw on a workspace that expands as you pan toward its edges; pan with the middle mouse button and zoom with the mouse wheel
-- Start with the drawing world centered in the viewport; expanding an edge preserves existing object positions and undo snapshots
-- Place consecutive text labels without switching tools; each previous label is committed before the next canvas click, and clicking away commits non-empty edits without deleting an existing label
-- Pan and zoom the ASCII artwork drawn inside a clipped canvas preview; generated text is kept internally for copying rather than shown in a separate text box
-- ASCII generation from the drawing's objects, with shape-specific rectangle, line, arrow, text, and freehand rendering
-- Content-based output bounds and proportion-aware adaptive character-grid sizing so drawings are not scaled against the entire workspace
-- Trims globally empty outer rows and columns while preserving relative spacing between objects
-- Keeps generated plain-text output to a conservative maximum of 72 columns by 28 rows for typical chat panes
-- Resolves rectangle and horizontal/vertical line intersections into Unicode box-drawing junctions
-- Canvas zoom up to 32× for precise drawing
-- Optional descriptor
-- Copy ASCII or copy the drawing plus optional descriptor
+- Fixed-scale drawing canvas; mouse wheel cannot zoom the drawing. Middle-drag pans the workspace.
+- The drawing world expands as you pan near its edges while preserving object positions and undo snapshots
+- Place consecutive text labels without switching tools
+- Zoom and pan the ASCII artwork inside a clipped preview; generated text is kept internally for copying
+- ASCII generation uses content-based bounds and an adaptive character grid
+- Output is capped at 72 columns by 28 rows for a conservative chat-friendly size
+- Tiny rectangles receive a minimum 2-by-2 character footprint; line segments that would collapse into one cell are extended to remain visible
+- Rectangle and horizontal/vertical line intersections use Unicode box-drawing junctions
+- Optional descriptor; copy ASCII alone or the drawing plus descriptor
 - Clear canvas and undo the last action
 
 ## Known limitations
 
 - This is an early prototype, not an accepted release.
 - Multi-select is not implemented yet.
-- ASCII output uses an adaptive character grid with a practical maximum size; freehand strokes remain approximate, so some details are lost.
-- The drawing world expands in 2000-unit increments when panning near an edge; it is practically expandable rather than mathematically infinite.
-- Images are intentionally out of scope for the first version.
+- The 72-by-28 output limit is a practical target, not a guarantee for every chat client, font, or zoom setting.
+- Freehand strokes and diagonal intersections remain approximate; minimum visible footprints may slightly distort tiny shapes to prevent them disappearing.
+- The drawing world expands in 2000-unit increments, so it is practically expandable rather than mathematically infinite.
+- Images are out of scope for the first version.
 - Browser clipboard permissions vary by browser and how the file is opened; a manual-copy fallback is included.
 - The canvas and drawing are held in memory. Persistence is not implemented.
 
-## Project documents
+## Working document
 
-See `docs/Initial-Design-v0.1.0.md` for the original design, `docs/Design-Refinement-v0.4.0.md` for chat-fit output and intersection rendering, `docs/Maintenance-v0.9.0.md` for the latest implementation and verification status, and earlier records for prior decisions. Earlier maintenance records preserve previous candidates.
-# sketch-to-ascii
+See [Working-Copy.md](docs/Working-Copy.md) for the current design, implementation decisions, and verification status. Use Git history and diffs to compare earlier versions.
