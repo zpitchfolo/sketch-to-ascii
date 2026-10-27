@@ -1,8 +1,8 @@
-# SketchText Maintenance v0.10.0
+# SketchText Maintenance v0.11.0
 
 **Artifact:** Chat-fit ASCII output and intersection handling  
-**Version:** 0.10.0  
-**Status:** Documentation updated; browser acceptance checks pending  
+**Version:** 0.11.0  
+**Status:** Implementation candidate; syntax/runtime acceptance checks pending  
 **Date:** 2026-10-27  
 **Target:** `main`  
 **Previous maintenance record:** Earlier records retained in Git history
@@ -32,7 +32,9 @@
 - Expanded the live-preview and destination-profile proposal. The goal is to let people use drawings in their own writing, paste them into LLM conversations, or share them as text messages without requiring an image.
 - Specified that destination previews should show generated characters, spacing, line breaks, and width/wrapping constraints; preview and copy should use the same settings.
 - Recorded unresolved details, including the limits of approximating another app's rendering and whether direct editing of generated text should map back to canvas objects.
-- No application source code was changed as part of this documentation update.
+- Updated `app.js`, `index.html`, and `style.css` to implement grid-snapped structural strokes, an X-mark tool, live generated text output, and an independently resizable desktop pane split.
+- Structural line/arrow endpoint resizing now preserves axis alignment and grid snapping.
+- Application source was changed for this candidate. Automated syntax checks and browser acceptance tests have not yet been run.
 
 ## Source checks
 
@@ -57,9 +59,13 @@ Previously recorded source checks:
 - [ ] Interaction test: drawing and text panes resize independently without changing output-frame dimensions.
 - [ ] Interaction test: output frame supports drag resizing and exact numeric width/height in characters/lines.
 - [ ] Interaction test: changing frame dimensions preserves source objects, updates preview, and visibly flags overflow without silent deletion or distortion.
+- [ ] Runtime test: live text output and visual preview update during pointer movement, object edits, undo, and text-label commits.
+- [ ] Runtime test: grid-snapped lines/arrows remain horizontal or vertical during drawing, moving, and endpoint resizing.
+- [ ] Runtime test: X marks render and export as `X` at their center.
+- [ ] Runtime test: desktop pane divider works with pointer and keyboard, and is hidden on narrow screens.
 
 ## Verification and acceptance status
 
-This update changes design and maintenance documentation only. No application source code was changed, and no source tests or browser tests were run for this documentation-only update. The ASCIIFlow-inspired grid interaction, independently resizable panes, adjustable/numerically sized output frame, live text preview, and destination profiles remain proposed work, not implemented behavior.
+This candidate changes `app.js`, `index.html`, and `style.css`. Source-level consistency checks confirmed the new tool, snapping helpers, live output node, draft preview path, pane divider handlers, and responsive divider rule are present. These are static source inspections, not a JavaScript parser or browser test. JavaScript syntax/runtime checks and browser acceptance tests have not been run. The numeric output frame, overflow reporting, and destination profiles remain proposed work.
 
-The existing app remains a candidate. Source checks were recorded previously, including JavaScript parsing, but visual and interaction acceptance must be performed in a running browser. The 72-column limit is a conservative default, not a guarantee across every chat client's font and zoom settings. The design document is now v0.5.0; the application itself is unchanged by this documentation update.
+The app remains an unaccepted candidate until the new and existing interactions are exercised in a browser. Previously recorded source checks relate to the prior candidate and do not establish syntax correctness or runtime behavior for these changes. The 72-column limit is a conservative default, not a guarantee across every chat client's font and zoom settings. The design document is now v0.6.0. The exact numeric output frame, overflow reporting, and destination profiles are still future work.
