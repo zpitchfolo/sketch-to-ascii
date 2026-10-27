@@ -36,6 +36,7 @@
 - Removed the separate live text-output pane and Generate ASCII button; the existing visual preview is now the single live output surface.
 - Kept structural lines and arrows selectable and movable as whole objects, with endpoint handles for adjustments.
 - Structural line/arrow endpoint resizing preserves axis alignment and grid snapping.
+- Whole-line/arrow dragging now moves the complete stroke in grid-cell increments, preserving its axis and length. X-brush strokes interpolate skipped grid cells between pointer events.
 - Application source was changed for this candidate. Automated syntax checks and browser acceptance tests have not yet been run.
 
 ## Source checks
