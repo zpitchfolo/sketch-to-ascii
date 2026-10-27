@@ -5,7 +5,7 @@
 **Status:** Updated source and documentation committed; browser acceptance checks pending  
 **Date:** 2026-10-26  
 **Target:** `main`  
-**Previous maintenance record:** `Maintenance-v0.8.0.md`
+**Previous maintenance record:** Earlier records retained in Git history
 
 ## Request
 
