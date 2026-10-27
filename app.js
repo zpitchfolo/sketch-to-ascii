@@ -344,7 +344,7 @@
   }
 
   function shiftObject(object, dx, dy) {
-    if (object.type === 'rect' || object.type === 'text') {
+    if (object.type === 'rect' || object.type === 'markX' || object.type === 'text') {
       object.x += dx; object.y += dy;
     } else if (object.type === 'line' || object.type === 'arrow') {
       object.x1 += dx; object.y1 += dy; object.x2 += dx; object.y2 += dy;
@@ -602,8 +602,18 @@
     if (state.tool === 'select' && state.moving && state.selectedId) {
       const object = getObject(state.selectedId);
       if (object && state.moveOrigin) {
-        translateObject(object, point.x - state.moveOrigin.x, point.y - state.moveOrigin.y);
-        state.moveOrigin = point;
+        if ((object.type === 'line' || object.type === 'arrow') && state.movedObjectSnapshot) {
+          // Move structural strokes by whole grid cells, preserving their axis and length.
+          const dx = Math.round((point.x - state.moveOrigin.x) / DRAW_GRID) * DRAW_GRID;
+          const dy = Math.round((point.y - state.moveOrigin.y) / DRAW_GRID) * DRAW_GRID;
+          object.x1 = state.movedObjectSnapshot.x1 + dx;
+          object.y1 = state.movedObjectSnapshot.y1 + dy;
+          object.x2 = state.movedObjectSnapshot.x2 + dx;
+          object.y2 = state.movedObjectSnapshot.y2 + dy;
+        } else {
+          translateObject(object, point.x - state.moveOrigin.x, point.y - state.moveOrigin.y);
+          state.moveOrigin = point;
+        }
         render();
       }
       return;
@@ -612,7 +622,22 @@
     if (state.draft.type === 'freehand') {
       const snapped = snapGridPoint(point);
       const last = state.draft.points[state.draft.points.length - 1];
-      if (snapped.x !== last.x || snapped.y !== last.y) state.draft.points.push(snapped);
+      if (snapped.x !== last.x || snapped.y !== last.y) {
+        // Fill skipped cells between pointer events so fast strokes remain continuous.
+        let x0 = Math.round(last.x / DRAW_GRID), y0 = Math.round(last.y / DRAW_GRID);
+        const x1 = Math.round(snapped.x / DRAW_GRID), y1 = Math.round(snapped.y / DRAW_GRID);
+        const dx = Math.abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+        const dy = -Math.abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
+        let error = dx + dy;
+        while (x0 !== x1 || y0 !== y1) {
+          const twiceError = 2 * error;
+          if (twiceError >= dy) { error += dy; x0 += sx; }
+          if (twiceError <= dx) { error += dx; y0 += sy; }
+          const stamp = { x: x0 * DRAW_GRID, y: y0 * DRAW_GRID };
+          const previous = state.draft.points[state.draft.points.length - 1];
+          if (stamp.x !== previous.x || stamp.y !== previous.y) state.draft.points.push(stamp);
+        }
+      }
     }
     else if (state.draft.type === 'rect' || state.draft.type === 'markX') Object.assign(state.draft, normalizedRect(state.start, point));
     else {
