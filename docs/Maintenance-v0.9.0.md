@@ -1,7 +1,7 @@
-# SketchText Maintenance v0.11.1
+# SketchText Maintenance v0.11.2
 
 **Artifact:** Chat-fit ASCII output and intersection handling  
-**Version:** 0.11.1  
+**Version:** 0.11.2  
 **Status:** Implementation candidate; syntax/runtime acceptance checks pending  
 **Date:** 2026-10-27  
 **Target:** `main`  
@@ -32,8 +32,10 @@
 - Expanded the live-preview and destination-profile proposal. The goal is to let people use drawings in their own writing, paste them into LLM conversations, or share them as text messages without requiring an image.
 - Specified that destination previews should show generated characters, spacing, line breaks, and width/wrapping constraints; preview and copy should use the same settings.
 - Recorded unresolved details, including the limits of approximating another app's rendering and whether direct editing of generated text should map back to canvas objects.
-- Updated `app.js`, `index.html`, and `style.css` to implement grid-snapped structural strokes, an X-mark tool, live generated text output, and an independently resizable desktop pane split.
-- Structural line/arrow endpoint resizing now preserves axis alignment and grid snapping.
+- Updated `app.js`, `index.html`, and `style.css` so Draw stamps X marks on the character grid, inspired by ASCIIFlow, instead of making continuous freehand strokes.
+- Removed the separate live text-output pane and Generate ASCII button; the existing visual preview is now the single live output surface.
+- Kept structural lines and arrows selectable and movable as whole objects, with endpoint handles for adjustments.
+- Structural line/arrow endpoint resizing preserves axis alignment and grid snapping.
 - Application source was changed for this candidate. Automated syntax checks and browser acceptance tests have not yet been run.
 
 ## Source checks
@@ -63,11 +65,12 @@ Previously recorded source checks:
 - [ ] Interaction test: changing frame dimensions preserves source objects, updates preview, and visibly flags overflow without silent deletion or distortion.
 - [ ] Runtime test: live text output and visual preview update during pointer movement, object edits, undo, and text-label commits.
 - [ ] Runtime test: grid-snapped lines/arrows remain horizontal or vertical during drawing, moving, and endpoint resizing.
-- [ ] Runtime test: X marks render and export as `X` at their center.
+- [ ] Runtime test: the Draw brush stamps X marks at grid points and each stamp exports as `X`.
+- [ ] Runtime test: lines and arrows can be selected, moved, and adjusted by their endpoint handles.
 - [ ] Runtime test: desktop pane divider works with pointer and keyboard, and is hidden on narrow screens.
 
 ## Verification and acceptance status
 
 This candidate changes `app.js`, `index.html`, and `style.css`. Source-level consistency checks confirmed the new tool, snapping helpers, live output node, draft preview path, pane divider handlers, and responsive divider rule are present. The current JavaScript candidate was parsed successfully without executing it, and the `getElementById` references in the app resolve to unique IDs in the HTML. Browser interaction tests and runtime acceptance tests have not been run. The numeric output frame, overflow reporting, and destination profiles remain proposed work.
 
-The app remains an unaccepted candidate until the new and existing interactions are exercised in a browser. Previously recorded source checks relate to the prior candidate and do not establish syntax correctness or runtime behavior for these changes. The 72-column limit is a conservative default, not a guarantee across every chat client's font and zoom settings. The design document is now v0.6.0. The exact numeric output frame, overflow reporting, and destination profiles are still future work.
+The app remains an unaccepted candidate until the new and existing interactions are exercised in a browser. Previously recorded source checks relate to the prior candidate and do not establish syntax correctness or runtime behavior for these changes. The 72-column limit is a conservative default, not a guarantee across every chat client's font and zoom settings. The design document is now v0.7.0. The exact numeric output frame, overflow reporting, and destination profiles are still future work.
