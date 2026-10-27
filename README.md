@@ -17,7 +17,8 @@ Open `index.html` in a modern browser. No build step, backend, account, or AI se
 - Place consecutive text labels without switching tools; each previous label is committed before the next canvas click, and clicking away commits non-empty edits without deleting an existing label
 - Pan and zoom the ASCII artwork drawn inside a clipped canvas preview; generated text is kept internally for copying rather than shown in a separate text box
 - ASCII generation from the drawing's objects, with shape-specific rectangle, line, arrow, text, and freehand rendering
-- Content-based output bounds and adaptive character-grid sizing so small drawings are not scaled against the entire workspace
+- Content-based output bounds and proportion-aware adaptive character-grid sizing so drawings are not scaled against the entire workspace
+- Trims globally empty outer rows and columns while preserving relative spacing between objects
 - Canvas zoom up to 32× for precise drawing
 - Optional descriptor
 - Copy ASCII or copy the drawing plus optional descriptor
@@ -35,5 +36,5 @@ Open `index.html` in a modern browser. No build step, backend, account, or AI se
 
 ## Project documents
 
-See `docs/Initial-Design-v0.1.0.md` for the original design, `docs/Design-Refinement-v0.2.0.md` for rendering and zoom decisions, and `docs/Maintenance-v0.7.0.md` for the latest implementation and verification status. Earlier maintenance records preserve previous candidates.
+See `docs/Initial-Design-v0.1.0.md` for the original design, `docs/Design-Refinement-v0.3.0.md` for output-layout refinement, `docs/Maintenance-v0.8.0.md` for the latest implementation and verification status, and earlier records for prior decisions. Earlier maintenance records preserve previous candidates.
 # sketch-to-ascii
