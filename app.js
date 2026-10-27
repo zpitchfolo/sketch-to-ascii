@@ -13,7 +13,6 @@
   const canvasWorld = document.querySelector('.canvas-world');
   const asciiViewport = document.querySelector('.ascii-viewport');
   const asciiZoomIndicator = document.querySelector('.ascii-zoom-indicator');
-  const asciiTextOutput = document.getElementById('asciiTextOutput');
   const asciiPreviewContext = asciiPreview.getContext('2d');
   let generatedAscii = '';
   let asciiPreviewText = '';
@@ -118,16 +117,16 @@
     context.lineJoin = 'round';
 
     if (object.type === 'freehand') {
-      if (object.points.length > 1) {
+      // ASCIIFlow-inspired draw brush: stamp one X at each visited grid point.
+      object.points.forEach(point => {
+        const size = 7;
         context.beginPath();
-        context.moveTo(object.points[0].x, object.points[0].y);
-        object.points.slice(1).forEach(point => context.lineTo(point.x, point.y));
+        context.moveTo(point.x - size, point.y - size);
+        context.lineTo(point.x + size, point.y + size);
+        context.moveTo(point.x + size, point.y - size);
+        context.lineTo(point.x - size, point.y + size);
         context.stroke();
-      } else if (object.points.length === 1) {
-        context.beginPath();
-        context.arc(object.points[0].x, object.points[0].y, 1.5, 0, Math.PI * 2);
-        context.fill();
-      }
+      });
     } else if (object.type === 'rect') {
       context.strokeRect(object.x, object.y, object.w, object.h);
     } else if (object.type === 'markX') {
@@ -281,7 +280,6 @@
     if (state.draft) drawObject(ctx, state.draft);
     generatedAscii = generateAscii(state.draft ? [...state.objects, state.draft] : state.objects);
     updateAsciiPreview(generatedAscii);
-    if (asciiTextOutput) asciiTextOutput.textContent = generatedAscii;
   }
 
   function distanceToSegment(point, a, b) {
@@ -580,7 +578,8 @@
     }
 
     if (state.tool === 'freehand') {
-      state.draft = { id: -1, type: 'freehand', points: [point], color: inkColor.value, width: 3 };
+      state.start = snapGridPoint(point);
+      state.draft = { id: -1, type: 'freehand', points: [state.start], color: inkColor.value, width: 3 };
     } else if (state.tool === 'rect') {
       state.draft = { id: -1, type: 'rect', x: point.x, y: point.y, w: 0, h: 0, color: inkColor.value, width: 3 };
     } else if (state.tool === 'xmark') {
@@ -610,7 +609,11 @@
       return;
     }
     if (!state.draft) return;
-    if (state.draft.type === 'freehand') state.draft.points.push(point);
+    if (state.draft.type === 'freehand') {
+      const snapped = snapGridPoint(point);
+      const last = state.draft.points[state.draft.points.length - 1];
+      if (snapped.x !== last.x || snapped.y !== last.y) state.draft.points.push(snapped);
+    }
     else if (state.draft.type === 'rect' || state.draft.type === 'markX') Object.assign(state.draft, normalizedRect(state.start, point));
     else {
       const snapped = snapStructuralEndpoint(state.start, point);
@@ -811,13 +814,8 @@
       return;
     }
     if (object.type === 'freehand') {
-      const points = object.points.map(mapPoint);
-      if (points.length === 1) { put(grid, points[0].x, points[0].y, '*'); return; }
-      for (let i = 1; i < points.length; i++) {
-        const a = points[i - 1], b = points[i];
-        const char = Math.abs(b.x - a.x) < 2 ? '|' : ((b.y - a.y) / ((b.x - a.x) || 1) > 0.35 ? '\\' : ((b.y - a.y) / ((b.x - a.x) || 1) < -0.35 ? '/' : '-'));
-        plotLine(grid, a, b, char);
-      }
+      // Each brush stamp becomes an X in the generated text, like ASCIIFlow's draw tool.
+      object.points.map(mapPoint).forEach(point => put(grid, point.x, point.y, 'X'));
     }
   }
 
@@ -842,13 +840,6 @@
       .map(row => row.slice(left, right + 1).join('').replace(/\s+$/u, ''));
     return rows.join('\n');
   }
-
-  document.getElementById('generateButton').addEventListener('click', () => {
-    generatedAscii = generateAscii();
-    updateAsciiPreview(generatedAscii);
-    if (asciiTextOutput) asciiTextOutput.textContent = generatedAscii;
-    statusMessage.textContent = 'ASCII preview refreshed.';
-  });
 
   function getCombinedText() {
     const drawing = generatedAscii || generateAscii();
