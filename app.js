@@ -599,13 +599,13 @@
   }
 
   function getGridSize(bounds) {
+    // One shared scale keeps the grid's character aspect close to the drawing's
+    // physical aspect. Independent minimums can stretch very wide or tall art.
     const characterAspect = 1.7;
     const ratio = Math.max(0.15, Math.min(12, bounds.w / Math.max(1, bounds.h) * characterAspect));
-    let columns = MAX_GRID_COLUMNS;
-    let rows = Math.round(columns / ratio);
-    if (rows > MAX_GRID_ROWS) { rows = MAX_GRID_ROWS; columns = Math.round(rows * ratio); }
-    columns = Math.max(24, Math.min(MAX_GRID_COLUMNS, columns));
-    rows = Math.max(12, Math.min(MAX_GRID_ROWS, rows));
+    const scale = Math.min(MAX_GRID_ROWS, MAX_GRID_COLUMNS / ratio);
+    const rows = Math.max(8, Math.min(MAX_GRID_ROWS, Math.round(scale)));
+    const columns = Math.max(8, Math.min(MAX_GRID_COLUMNS, Math.round(rows * ratio)));
     return { columns, rows };
   }
 
@@ -701,7 +701,14 @@
     while (top < grid.length && grid[top].every(char => char === ' ')) top++;
     while (bottom >= top && grid[bottom].every(char => char === ' ')) bottom--;
     if (top > bottom) return '(empty drawing)';
-    const rows = grid.slice(top, bottom + 1).map(row => row.join('').replace(/\s+$/u, ''));
+
+    // Crop only globally empty outer columns. This removes wasted canvas margin
+    // without changing the relative spacing between any objects in the sketch.
+    let left = 0, right = grid[0].length - 1;
+    while (left < grid[0].length && grid.slice(top, bottom + 1).every(row => row[left] === ' ')) left++;
+    while (right >= left && grid.slice(top, bottom + 1).every(row => row[right] === ' ')) right--;
+    const rows = grid.slice(top, bottom + 1)
+      .map(row => row.slice(left, right + 1).join('').replace(/\s+$/u, ''));
     return rows.join('\n');
   }
 
