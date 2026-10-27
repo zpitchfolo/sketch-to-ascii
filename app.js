@@ -13,6 +13,7 @@
   const canvasWorld = document.querySelector('.canvas-world');
   const asciiViewport = document.querySelector('.ascii-viewport');
   const asciiZoomIndicator = document.querySelector('.ascii-zoom-indicator');
+  const asciiTextOutput = document.getElementById('asciiTextOutput');
   const asciiPreviewContext = asciiPreview.getContext('2d');
   let generatedAscii = '';
   let asciiPreviewText = '';
@@ -78,6 +79,18 @@
     return { x: Math.min(a.x, b.x), y: Math.min(a.y, b.y), w: Math.abs(b.x - a.x), h: Math.abs(b.y - a.y) };
   }
 
+  // Structural strokes follow the visible character-grid guide and snap to one axis.
+  const DRAW_GRID = 36;
+  function snapGridPoint(point) {
+    return { x: Math.round(point.x / DRAW_GRID) * DRAW_GRID, y: Math.round(point.y / DRAW_GRID) * DRAW_GRID };
+  }
+  function snapStructuralEndpoint(start, point) {
+    const a = snapGridPoint(start), b = snapGridPoint(point);
+    if (Math.abs(b.x - a.x) >= Math.abs(b.y - a.y)) b.y = a.y;
+    else b.x = a.x;
+    return { start: a, end: b };
+  }
+
   function drawArrow(context, a, b) {
     context.beginPath();
     context.moveTo(a.x, a.y);
@@ -117,6 +130,11 @@
       }
     } else if (object.type === 'rect') {
       context.strokeRect(object.x, object.y, object.w, object.h);
+    } else if (object.type === 'markX') {
+      context.beginPath();
+      context.moveTo(object.x, object.y); context.lineTo(object.x + object.w, object.y + object.h);
+      context.moveTo(object.x + object.w, object.y); context.lineTo(object.x, object.y + object.h);
+      context.stroke();
     } else if (object.type === 'line') {
       context.beginPath(); context.moveTo(object.x1, object.y1); context.lineTo(object.x2, object.y2); context.stroke();
     } else if (object.type === 'arrow') {
@@ -144,7 +162,7 @@
   }
 
   function getBounds(object) {
-    if (object.type === 'rect') return { x: object.x, y: object.y, w: object.w, h: object.h };
+    if (object.type === 'rect' || object.type === 'markX') return { x: object.x, y: object.y, w: object.w, h: object.h };
     if (object.type === 'line' || object.type === 'arrow') {
       return { x: Math.min(object.x1, object.x2), y: Math.min(object.y1, object.y2), w: Math.abs(object.x2 - object.x1), h: Math.abs(object.y2 - object.y1) };
     }
@@ -199,7 +217,7 @@
     const sx = (right - left) / (original.w || 1), sy = (bottom - top) / (original.h || 1);
     const mapX = x => left + (x - original.x) * sx;
     const mapY = y => top + (y - original.y) * sy;
-    if (object.type === 'rect') {
+    if (object.type === 'rect' || object.type === 'markX') {
       object.x = left; object.y = top; object.w = right - left; object.h = bottom - top;
     } else if (object.type === 'line' || object.type === 'arrow') {
       object.x1 = mapX(snapshot.x1); object.y1 = mapY(snapshot.y1);
@@ -254,6 +272,9 @@
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     state.objects.forEach(object => drawObject(ctx, object));
     if (state.draft) drawObject(ctx, state.draft);
+    generatedAscii = generateAscii(state.draft ? [...state.objects, state.draft] : state.objects);
+    updateAsciiPreview(generatedAscii);
+    if (asciiTextOutput) asciiTextOutput.textContent = generatedAscii;
   }
 
   function distanceToSegment(point, a, b) {
@@ -288,7 +309,7 @@
   }
 
   function translateObject(object, dx, dy) {
-    if (object.type === 'rect') { object.x += dx; object.y += dy; }
+    if (object.type === 'rect' || object.type === 'markX') { object.x += dx; object.y += dy; }
     else if (object.type === 'line' || object.type === 'arrow') { object.x1 += dx; object.y1 += dy; object.x2 += dx; object.y2 += dy; }
     else if (object.type === 'text') { object.x += dx; object.y += dy; }
     else if (object.type === 'freehand') object.points.forEach(point => { point.x += dx; point.y += dy; });
@@ -457,6 +478,43 @@
 
   window.addEventListener('resize', applyAsciiViewTransform);
 
+  // Resizing panes changes screen space only, never drawing coordinates.
+  const workspace = document.querySelector('.workspace');
+  const workspaceDivider = document.querySelector('.workspace-divider');
+  if (workspace && workspaceDivider) {
+    let splitDrag = null;
+    workspaceDivider.addEventListener('pointerdown', event => {
+      if (window.matchMedia('(max-width: 900px)').matches) return;
+      splitDrag = { pointerId: event.pointerId, startX: event.clientX, startWidth: workspace.children[0].getBoundingClientRect().width };
+      workspaceDivider.setPointerCapture(event.pointerId);
+      event.preventDefault();
+    });
+    workspaceDivider.addEventListener('pointermove', event => {
+      if (!splitDrag || splitDrag.pointerId !== event.pointerId) return;
+      const total = workspace.clientWidth, dividerWidth = workspaceDivider.getBoundingClientRect().width;
+      const minDrawing = 260, minOutput = 280;
+      const desired = Math.max(minDrawing, Math.min(total - minOutput - dividerWidth - 16, splitDrag.startWidth + event.clientX - splitDrag.startX));
+      const available = Math.max(1, total - dividerWidth - 16);
+      workspace.style.gridTemplateColumns = `${desired}px 10px minmax(${minOutput}px, ${Math.max(minOutput, available - desired)}px)`;
+      applyAsciiViewTransform();
+    });
+    const stopSplitDrag = event => {
+      if (!splitDrag || splitDrag.pointerId !== event.pointerId) return;
+      splitDrag = null;
+      if (workspaceDivider.hasPointerCapture(event.pointerId)) workspaceDivider.releasePointerCapture(event.pointerId);
+    };
+    workspaceDivider.addEventListener('pointerup', stopSplitDrag);
+    workspaceDivider.addEventListener('pointercancel', stopSplitDrag);
+    workspaceDivider.addEventListener('keydown', event => {
+      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+      event.preventDefault();
+      const first = workspace.children[0].getBoundingClientRect().width;
+      const next = Math.max(260, Math.min(workspace.clientWidth - 310, first + (event.key === 'ArrowRight' ? 24 : -24)));
+      workspace.style.gridTemplateColumns = `${next}px 10px minmax(280px, 1fr)`;
+      applyAsciiViewTransform();
+    });
+  }
+
   updateAsciiPreview();
 
   attachPanZoom(canvasFrame, view, applyViewTransform);
@@ -518,8 +576,12 @@
       state.draft = { id: -1, type: 'freehand', points: [point], color: inkColor.value, width: 3 };
     } else if (state.tool === 'rect') {
       state.draft = { id: -1, type: 'rect', x: point.x, y: point.y, w: 0, h: 0, color: inkColor.value, width: 3 };
+    } else if (state.tool === 'xmark') {
+      const snapped = snapGridPoint(point); state.start = snapped;
+      state.draft = { id: -1, type: 'markX', x: snapped.x, y: snapped.y, w: 0, h: 0, color: inkColor.value, width: 3 };
     } else if (state.tool === 'line' || state.tool === 'arrow') {
-      state.draft = { id: -1, type: state.tool, x1: point.x, y1: point.y, x2: point.x, y2: point.y, color: inkColor.value, width: 3 };
+      const snapped = snapGridPoint(point); state.start = snapped;
+      state.draft = { id: -1, type: state.tool, x1: snapped.x, y1: snapped.y, x2: snapped.x, y2: snapped.y, color: inkColor.value, width: 3 };
     }
   });
 
@@ -542,8 +604,12 @@
     }
     if (!state.draft) return;
     if (state.draft.type === 'freehand') state.draft.points.push(point);
-    else if (state.draft.type === 'rect') Object.assign(state.draft, normalizedRect(state.start, point));
-    else { state.draft.x2 = point.x; state.draft.y2 = point.y; }
+    else if (state.draft.type === 'rect' || state.draft.type === 'markX') Object.assign(state.draft, normalizedRect(state.start, point));
+    else {
+      const snapped = snapStructuralEndpoint(state.start, point);
+      state.draft.x1 = snapped.start.x; state.draft.y1 = snapped.start.y;
+      state.draft.x2 = snapped.end.x; state.draft.y2 = snapped.end.y;
+    }
     render();
   });
 
@@ -684,6 +750,11 @@
   }
 
   function drawObjectToGrid(grid, object) {
+    if (object.type === 'markX') {
+      const point = mapPoint({ x: object.x + object.w / 2, y: object.y + object.h / 2 });
+      put(grid, point.x, point.y, 'X');
+      return;
+    }
     if (object.type === 'text') {
       putText(grid, { x: object.x, y: object.y }, object.text);
       return;
@@ -743,13 +814,13 @@
     }
   }
 
-  function generateAscii() {
-    conversion.bounds = getDrawingBounds(state.objects);
+  function generateAscii(objects = state.objects) {
+    conversion.bounds = getDrawingBounds(objects);
     Object.assign(conversion, getGridSize(conversion.bounds));
     const grid = makeGrid();
     // Text is rendered last so labels remain visible over intersecting shapes.
-    state.objects.filter(object => object.type !== 'text').forEach(object => drawObjectToGrid(grid, object));
-    state.objects.filter(object => object.type === 'text').forEach(object => drawObjectToGrid(grid, object));
+    objects.filter(object => object.type !== 'text').forEach(object => drawObjectToGrid(grid, object));
+    objects.filter(object => object.type === 'text').forEach(object => drawObjectToGrid(grid, object));
     let top = 0, bottom = grid.length - 1;
     while (top < grid.length && grid[top].every(char => char === ' ')) top++;
     while (bottom >= top && grid[bottom].every(char => char === ' ')) bottom--;
@@ -767,8 +838,9 @@
 
   document.getElementById('generateButton').addEventListener('click', () => {
     generatedAscii = generateAscii();
-    updateAsciiPreview();
-    statusMessage.textContent = 'ASCII generated.';
+    updateAsciiPreview(generatedAscii);
+    if (asciiTextOutput) asciiTextOutput.textContent = generatedAscii;
+    statusMessage.textContent = 'ASCII preview refreshed.';
   });
 
   function getCombinedText() {
