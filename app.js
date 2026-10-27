@@ -614,10 +614,11 @@
 
   function mapPoint(point) {
     const { bounds, columns, rows } = conversion;
-    const margin = 2;
+    const marginX = Math.min(1, Math.floor((columns - 1) / 2));
+    const marginY = Math.min(1, Math.floor((rows - 1) / 2));
     return {
-      x: margin + Math.round((point.x - bounds.x) / Math.max(1, bounds.w) * (columns - 1 - margin * 2)),
-      y: margin + Math.round((point.y - bounds.y) / Math.max(1, bounds.h) * (rows - 1 - margin * 2))
+      x: marginX + Math.round((point.x - bounds.x) / Math.max(1, bounds.w) * Math.max(0, columns - 1 - marginX * 2)),
+      y: marginY + Math.round((point.y - bounds.y) / Math.max(1, bounds.h) * Math.max(0, rows - 1 - marginY * 2))
     };
   }
 
