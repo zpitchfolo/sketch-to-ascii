@@ -21,8 +21,7 @@
       <div class="drawing-column">
         <div class="toolbar" role="toolbar" aria-label="Drawing tools">
           <button class="tool-button active" data-tool="select" type="button" title="Select and move" aria-label="Select and move">↖ <span>Select</span></button>
-          <button class="tool-button" data-tool="freehand" type="button" title="Freehand draw" aria-label="Freehand draw">✎ <span>Draw</span></button>
-          <button class="tool-button" data-tool="xmark" type="button" title="Place an X mark" aria-label="Place an X mark">× <span>X mark</span></button>
+          <button class="tool-button" data-tool="freehand" type="button" title="Draw X marks on the grid" aria-label="Draw X marks on the grid">✎ <span>Draw</span></button>
           <button class="tool-button" data-tool="rect" type="button" title="Rectangle" aria-label="Rectangle">▱ <span>Rectangle</span></button>
           <button class="tool-button" data-tool="line" type="button" title="Line" aria-label="Line">╱ <span>Line</span></button>
           <button class="tool-button" data-tool="arrow" type="button" title="Arrow" aria-label="Arrow">➜ <span>Arrow</span></button>
@@ -54,11 +53,8 @@
           </div>
           <span class="status-dot" aria-hidden="true"></span>
         </div>
-        <p class="section-description">Generate a text version of your sketch. Copy the drawing alone or include your optional descriptor.</p>
-        <button id="generateButton" class="button button-primary" type="button">Generate ASCII</button>
-        <p class="field-label">Live text output <span class="optional">updates while you draw</span></p>
-        <pre id="asciiTextOutput" class="ascii-text-output" aria-live="polite">(empty drawing)</pre>
-        <p class="field-label">Visual preview <span class="optional">middle-drag to pan · wheel to zoom</span></p>
+        <p class="section-description">Your sketch becomes live text as you draw. Copy the drawing alone or include your optional descriptor.</p>
+        <p class="field-label">Live text preview <span class="optional">middle-drag to pan · wheel to zoom</span></p>
         <div class="ascii-viewport" aria-label="ASCII preview viewport">
           <canvas id="asciiPreview" class="ascii-preview is-empty" aria-label="Zoomable visual preview of generated ASCII"></canvas>
           <span class="ascii-zoom-indicator" aria-hidden="true">100%</span>
