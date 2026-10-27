@@ -1,7 +1,7 @@
-# SketchText Maintenance v0.11.0
+# SketchText Maintenance v0.11.1
 
 **Artifact:** Chat-fit ASCII output and intersection handling  
-**Version:** 0.11.0  
+**Version:** 0.11.1  
 **Status:** Implementation candidate; syntax/runtime acceptance checks pending  
 **Date:** 2026-10-27  
 **Target:** `main`  
@@ -48,7 +48,9 @@ Previously recorded source checks:
 - [x] Drawing canvas stays at fixed 1:1 scale; wheel input is blocked for canvas zoom.
 - [x] Tiny rectangles have a minimum 2-by-2 character footprint.
 - [x] Collapsed line/arrow endpoints are extended along their dominant direction.
-- [x] JavaScript syntax parses successfully.
+- [x] Previous candidate JavaScript syntax parse was successful.
+- [x] Current candidate JavaScript syntax parses successfully (parsed without executing the app).
+- [x] HTML ID references used by `app.js` resolve to unique IDs in `index.html`.
 - [x] README links to the current design and maintenance documents.
 - [ ] Browser test: line crosses rectangle border and renders a junction.
 - [ ] Browser test: overlapping rectangles and multiple crossings.
@@ -66,6 +68,6 @@ Previously recorded source checks:
 
 ## Verification and acceptance status
 
-This candidate changes `app.js`, `index.html`, and `style.css`. Source-level consistency checks confirmed the new tool, snapping helpers, live output node, draft preview path, pane divider handlers, and responsive divider rule are present. These are static source inspections, not a JavaScript parser or browser test. JavaScript syntax/runtime checks and browser acceptance tests have not been run. The numeric output frame, overflow reporting, and destination profiles remain proposed work.
+This candidate changes `app.js`, `index.html`, and `style.css`. Source-level consistency checks confirmed the new tool, snapping helpers, live output node, draft preview path, pane divider handlers, and responsive divider rule are present. The current JavaScript candidate was parsed successfully without executing it, and the `getElementById` references in the app resolve to unique IDs in the HTML. Browser interaction tests and runtime acceptance tests have not been run. The numeric output frame, overflow reporting, and destination profiles remain proposed work.
 
 The app remains an unaccepted candidate until the new and existing interactions are exercised in a browser. Previously recorded source checks relate to the prior candidate and do not establish syntax correctness or runtime behavior for these changes. The 72-column limit is a conservative default, not a guarantee across every chat client's font and zoom settings. The design document is now v0.6.0. The exact numeric output frame, overflow reporting, and destination profiles are still future work.
