@@ -1,12 +1,12 @@
-# SketchText Design Refinement v0.4.0
+# SketchText Design Refinement v0.5.0
 
 **Artifact:** Chat-sized output and intersection-aware line art  
-**Version:** 0.4.0  
+**Version:** 0.5.0  
 **Status:** Updated candidate; runtime acceptance checks pending  
 **Date:** 2026-10-27  
 **Base design:** Earlier refinement retained in Git history  
-**Development workflow:** Development State Machine Workflow v1.3.0  
-https://github.com/zpitchfolo/Meta-Modules/blob/main/workflows/Development-State-Machine-Workflow-v1.3.0.md
+**Development workflow:** Development State Machine Workflow v1.5.0  
+https://github.com/zpitchfolo/Meta-Modules/blob/main/workflows/Development-State-Machine-Workflow-v1.5.0.md
 
 ## Problems
 
@@ -15,6 +15,8 @@ https://github.com/zpitchfolo/Meta-Modules/blob/main/workflows/Development-State
 - A fixed minimum grid size could distort drawings with extreme aspect ratios.
 - A drawing can look correct on the canvas but produce text that wraps or appears differently in its destination app.
 - The tool should be useful for writing and thinking, not only for converting a finished sketch into an export.
+- Freehand pixel-style drawing is a poor fit for diagrams that need clean character-grid lines, arrows, and intersections.
+- Users need control over both the available screen space and the exact character dimensions of the intended text output.
 
 ## Decisions
 
@@ -28,13 +30,32 @@ https://github.com/zpitchfolo/Meta-Modules/blob/main/workflows/Development-State
 8. Prevent small objects from silently disappearing in output. Expand mapped rectangles to a minimum 2-by-2 character footprint and extend line or arrow segments if both endpoints map to the same character cell. This intentionally prioritizes visible output over exact proportions for tiny objects.
 9. Keep the drawing canvas and text output as distinct but synchronized views: the canvas is the spatial editing surface, while the generated text is a first-class artifact for writing, sharing, and LLM input.
 
-## Proposed Feature: Live Text Preview and Destination Profiles
+## Proposed Feature: Grid-Based Drawing, Resizable Output Frame, and Live Text Preview
 
 **Status: Planned; not implemented or runtime-tested.** This feature refines the current drawing-to-text workflow. It does not replace the drawing canvas or change the current output format.
 
 ### Purpose
 
 SketchText should let a person draw spatially and communicate textually. The same diagram should be useful in personal notes or prose, as input to an LLM, or in a message to a friend without requiring a screenshot. An image export may be useful for some sharing situations, but it is optional and is not the core workflow.
+
+### Drawing interaction model
+
+Use [ASCIIFlow](https://asciiflow.com/) as prior art for the grid-based drawing interaction, not as a requirement to copy its implementation or limitations. This is a planned interaction change, not a description of the current prototype.
+
+- Draw diagram lines and arrows along character-grid directions rather than allowing the line and arrow tools to create arbitrary diagonal strokes.
+- Support clean horizontal and vertical segments, connected corners, crossings, and arrowheads. Resolve line intersections consistently into suitable Unicode box-drawing characters where possible.
+- Keep lightweight expressive marks available for diagrams that need them, including X marks and other freeform annotations. These marks should not be forced to behave like structural box borders.
+- Keep shape and line editing spatial: users should be able to select, move, resize, and adjust objects without manually editing every output character.
+- Define tool behavior explicitly so structural lines/arrows and freeform marks have different, predictable constraints.
+
+### Resizable workspace and output frame
+
+- Allow the drawing and generated-text panes to be resized independently with a draggable divider. This changes how much screen space each pane receives, not the dimensions of the diagram's text output.
+- Provide an adjustable output frame that can be resized by dragging its edges/corners and sized precisely by typing width and height.
+- Express frame dimensions in output characters and lines, not screen pixels. For example, a width of 60 means 60 output columns regardless of pane width or display scaling.
+- Changing pane size must not change the configured output-frame dimensions. Changing frame dimensions must not merely scale the on-screen drawing.
+- Permit drawing content to extend beyond the frame, but make overflow visible and understandable. Do not silently delete, distort, or rearrange objects when the frame changes.
+- Keep the frame as a layout guide for the intended text boundary. Moving or resizing it should update the generated output and preview while preserving the source objects unless the user explicitly edits those objects.
 
 ### Intended behavior
 
@@ -54,6 +75,11 @@ SketchText should let a person draw spatially and communicate textually. The sam
 
 ### Acceptance criteria for the proposed feature
 
+- Line and arrow tools create grid-aligned structural strokes rather than arbitrary diagonal strokes; X marks and freeform annotations remain available through appropriate tools.
+- Connected lines, arrows, box borders, and crossings produce stable, readable junctions without stray gaps or overwritten connections.
+- The drawing and text panes can be resized independently without changing the output-frame width or height.
+- A user can resize the output frame by dragging and enter exact numeric width and height in characters and lines.
+- Changing frame dimensions updates the preview, preserves the source objects, and shows overflow rather than silently removing or distorting content.
 - A change to a drawing object updates the text preview without requiring a separate export action.
 - The preview exposes the actual generated characters and whitespace, including line breaks.
 - Switching destination profiles updates the preview's formatting constraints without changing the source drawing.
@@ -71,7 +97,7 @@ SketchText should let a person draw spatially and communicate textually. The sam
 - Rectangles and horizontal/vertical line segments use edge masks.
 - Text is rendered last, preserving label readability.
 
-The live preview and destination-profile feature above is design-only; no implementation changes are implied by its inclusion here.
+The grid-based drawing interaction, resizable panes/output frame, live preview, and destination-profile features above are design-only; no implementation changes are implied by their inclusion here.
 
 ## Acceptance criteria
 
@@ -86,4 +112,4 @@ The live preview and destination-profile feature above is design-only; no implem
 
 ## Verification state
 
-Source checks previously confirmed the fixed drawing scale and wheel guard, minimum footprints for tiny rectangles and collapsed line/arrow endpoints, configured output limits, edge-mask resolver, rectangle edge tracking, axis-aligned line tracking, adaptive margins, and JavaScript syntax. Live browser rendering, output-width measurement in multiple chat clients, and interaction regression tests remain pending. The proposed live text preview and destination profiles have not been implemented or tested. This candidate is not accepted until the relevant tests pass.
+Source checks previously confirmed the fixed drawing scale and wheel guard, minimum footprints for tiny rectangles and collapsed line/arrow endpoints, configured output limits, edge-mask resolver, rectangle edge tracking, axis-aligned line tracking, adaptive margins, and JavaScript syntax. Live browser rendering, output-width measurement in multiple chat clients, and interaction regression tests remain pending. The proposed ASCIIFlow-inspired grid interaction, resizable workspace panes, draggable and numerically sized output frame, live text preview, and destination profiles have not been implemented or tested. The current prototype still has its existing approximate freehand/diagonal behavior; this design update does not change the app. This candidate is not accepted until the relevant tests pass.
