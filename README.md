@@ -8,8 +8,8 @@ Open `index.html` in a modern browser. No build step, backend, account, or AI se
 
 ## Current prototype
 
-- Freehand drawing, rectangles, grid-snapped horizontal/vertical lines and arrows, X marks, and text labels
-- Live text output updates as objects are drawn or edited
+- ASCIIFlow-inspired Draw brush stamps grid-aligned X marks; rectangles, movable grid-snapped horizontal/vertical lines and arrows, and text labels are also supported
+- The visual preview is the live text output and updates as objects are drawn or edited; there is no separate text-output pane or Generate button
 - Desktop drawing/output panes can be resized independently
 - Select, move, and resize existing objects with visible handles
 - Enter and edit text directly on the canvas in an inline text box
@@ -30,7 +30,7 @@ Open `index.html` in a modern browser. No build step, backend, account, or AI se
 - This is an early prototype, not an accepted release.
 - Multi-select is not implemented yet.
 - The 72-by-28 output limit is a practical target, not a guarantee for every chat client, font, or zoom setting.
-- Freehand strokes and diagonal intersections remain approximate; X marks export as a single `X` at their center.
+- Draw stamps X marks on grid points; diagonal intersections remain approximate.
 - The output frame still has no drag-resize or exact numeric width/height controls; destination profiles are not implemented.
 - Live preview and pane resizing have received source-level checks only; browser interaction acceptance remains pending.
 - The drawing world expands in 2000-unit increments, so it is practically expandable rather than mathematically infinite.
