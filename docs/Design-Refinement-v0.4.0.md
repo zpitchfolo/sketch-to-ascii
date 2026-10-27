@@ -92,7 +92,7 @@ Use [ASCIIFlow](https://asciiflow.com/) as prior art for the grid-based drawing 
 Implemented in the current candidate:
 
 - Structural line and arrow endpoints snap to the visible 36-pixel drawing grid and constrain the stroke to horizontal or vertical orientation, including when resizing line endpoints.
-- Added an X-mark object/tool. It is visually editable as a shape and exports as an `X` character at its center.
+- Reworked Draw into an ASCIIFlow-inspired brush that stamps X marks on grid points, interpolating between pointer events so fast strokes do not skip cells. Each stamp exports as an `X` character.
 - The generated text and visual preview refresh during drawing and editing, including the active draft stroke.
 - The visual preview is the single live output surface; removed the redundant separate text-output pane and the manual Generate ASCII button.
 - The Draw tool stamps grid-aligned X marks, inspired by ASCIIFlow's draw interaction, instead of drawing continuous freehand strokes.
