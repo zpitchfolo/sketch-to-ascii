@@ -1,7 +1,7 @@
-# SketchText Maintenance v0.9.0
+# SketchText Maintenance v0.10.0
 
 **Artifact:** Chat-fit ASCII output and intersection handling  
-**Version:** 0.9.0  
+**Version:** 0.10.0  
 **Status:** Documentation updated; browser acceptance checks pending  
 **Date:** 2026-10-27  
 **Target:** `main`  
@@ -15,6 +15,7 @@
 - Fix the drawing canvas at 1:1 scale; the user prioritizes a predictable, chat-ready drawing workflow over canvas zoom.
 - Prevent tiny rectangles and very short lines/arrows from collapsing into invisible or ambiguous output.
 - Record the proposed live text preview and destination-specific formatting feature in the design document.
+- Refine the design around ASCIIFlow-style character-grid drawing, distinct structural line/arrow tools and freeform X marks, independently resizable workspace panes, and an output frame that supports drag resizing plus exact numeric width/height.
 
 ## Changes
 
@@ -26,7 +27,9 @@
 - Kept diagonal strokes approximate and documented this limitation; the renderer cannot infer semantic connection intent.
 - Fixed the drawing canvas scale at 1:1 and made its wheel handler prevent zoom; middle-drag panning remains available. ASCII-preview zoom remains independent.
 - Give mapped rectangles a minimum 2-by-2 character footprint and extend line/arrow segments when both endpoints map to the same cell.
-- Added a design-only proposal for a live-updating text preview and destination profiles. The goal is to let people use drawings in their own writing, paste them into LLM conversations, or share them as text messages without requiring an image.
+- Added a design-only proposal for ASCIIFlow-inspired grid-based drawing interactions. Structural lines and arrows should follow character-grid directions, while X marks and other freeform annotations remain available as distinct tools.
+- Specified independently resizable drawing/output panes and a separate output frame that can be dragged or sized using exact character-column and line counts. Pane size and output-frame dimensions are separate controls; overflow should be shown rather than silently distorting or deleting objects.
+- Expanded the live-preview and destination-profile proposal. The goal is to let people use drawings in their own writing, paste them into LLM conversations, or share them as text messages without requiring an image.
 - Specified that destination previews should show generated characters, spacing, line breaks, and width/wrapping constraints; preview and copy should use the same settings.
 - Recorded unresolved details, including the limits of approximating another app's rendering and whether direct editing of generated text should map back to canvas objects.
 - No application source code was changed as part of this documentation update.
@@ -48,10 +51,15 @@ Previously recorded source checks:
 - [ ] Browser test: line crosses rectangle border and renders a junction.
 - [ ] Browser test: overlapping rectangles and multiple crossings.
 - [ ] Browser test: output stays within configured dimensions and is readable in narrow chat panes.
-- [ ] Browser test: diagonals, arrowheads, labels, preview/copy, undo, fixed-scale canvas behavior, and ASCII-preview zoom.
+- [ ] Browser test: diagonals/structural-line constraints, arrowheads, labels, preview/copy, undo, fixed-scale canvas behavior, and ASCII-preview zoom.
+- [ ] Interaction test: structural lines and arrows snap to character-grid directions while X marks/freeform annotations remain usable.
+- [ ] Interaction test: line/arrow crossings, box-border connections, and arrowheads render without gaps or corrupted junctions.
+- [ ] Interaction test: drawing and text panes resize independently without changing output-frame dimensions.
+- [ ] Interaction test: output frame supports drag resizing and exact numeric width/height in characters/lines.
+- [ ] Interaction test: changing frame dimensions preserves source objects, updates preview, and visibly flags overflow without silent deletion or distortion.
 
 ## Verification and acceptance status
 
-This update changes design and maintenance documentation only. No source tests were run for this documentation-only change, and no browser tests have been performed. The live text preview and destination profiles remain proposed work, not implemented behavior.
+This update changes design and maintenance documentation only. No application source code was changed, and no source tests or browser tests were run for this documentation-only update. The ASCIIFlow-inspired grid interaction, independently resizable panes, adjustable/numerically sized output frame, live text preview, and destination profiles remain proposed work, not implemented behavior.
 
-The existing app remains a candidate. Source checks were recorded previously, including JavaScript parsing, but visual and interaction acceptance must be performed in a running browser. The 72-column limit is a conservative default, not a guarantee across every chat client's font and zoom settings.
+The existing app remains a candidate. Source checks were recorded previously, including JavaScript parsing, but visual and interaction acceptance must be performed in a running browser. The 72-column limit is a conservative default, not a guarantee across every chat client's font and zoom settings. The design document is now v0.5.0; the application itself is unchanged by this documentation update.
