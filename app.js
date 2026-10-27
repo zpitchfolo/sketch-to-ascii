@@ -202,8 +202,15 @@
 
   function resizeObjectFromSnapshot(object, snapshot, handle, point) {
     if ((object.type === 'line' || object.type === 'arrow') && (handle === 'p1' || handle === 'p2')) {
-      if (handle === 'p1') { object.x1 = point.x; object.y1 = point.y; }
-      else { object.x2 = point.x; object.y2 = point.y; }
+      if (handle === 'p1') {
+        const snapped = snapStructuralEndpoint({ x: object.x2, y: object.y2 }, point);
+        object.x2 = snapped.start.x; object.y2 = snapped.start.y;
+        object.x1 = snapped.end.x; object.y1 = snapped.end.y;
+      } else {
+        const snapped = snapStructuralEndpoint({ x: object.x1, y: object.y1 }, point);
+        object.x1 = snapped.start.x; object.y1 = snapped.start.y;
+        object.x2 = snapped.end.x; object.y2 = snapped.end.y;
+      }
       return;
     }
     const original = getBounds(snapshot);
