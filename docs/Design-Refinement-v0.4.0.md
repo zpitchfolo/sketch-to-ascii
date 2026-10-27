@@ -1,7 +1,7 @@
-# SketchText Design Refinement v0.6.0
+# SketchText Design Refinement v0.7.0
 
 **Artifact:** Chat-sized output and intersection-aware line art  
-**Version:** 0.6.0  
+**Version:** 0.7.0  
 **Status:** Implementation candidate; runtime acceptance checks pending  
 **Date:** 2026-10-27  
 **Base design:** Earlier refinement retained in Git history  
@@ -28,7 +28,7 @@ https://github.com/zpitchfolo/Meta-Modules/blob/main/workflows/Development-State
 6. Keep diagonal strokes approximate. A diagonal crossing may still need a style-specific glyph, because the renderer cannot infer whether it means a connection or an overlay.
 7. Use a fixed 1:1 drawing-canvas scale. Mouse-wheel input must not zoom the drawing workspace; middle-drag panning remains available. Keep ASCII-preview zoom separate from drawing-canvas scale.
 8. Prevent small objects from silently disappearing in output. Expand mapped rectangles to a minimum 2-by-2 character footprint and extend line or arrow segments if both endpoints map to the same character cell. This intentionally prioritizes visible output over exact proportions for tiny objects.
-9. Keep the drawing canvas and text output as distinct but synchronized views: the canvas is the spatial editing surface, while the generated text is a first-class artifact for writing, sharing, and LLM input.
+9. Keep the drawing canvas as the spatial editing surface and the visual preview as the single live text-output surface. The generated text remains a first-class artifact for writing, sharing, and LLM input.
 
 ## Proposed Feature: Grid-Based Drawing, Resizable Output Frame, and Live Text Preview
 
@@ -60,7 +60,7 @@ Use [ASCIIFlow](https://asciiflow.com/) as prior art for the grid-based drawing 
 ### Intended behavior
 
 - Update the generated text preview as the user draws or edits objects, so the user can see the actual characters, spacing, and line breaks during composition rather than discovering output problems only after export.
-- Keep the generated text visible and easy to select or copy. The text output should be treated as a first-class artifact, not merely a disposable representation of the canvas.
+- Keep the generated text visible in the visual preview and easy to copy. The preview should represent the actual generated characters and whitespace, not a separate manually refreshed output.
 - Let users choose a destination profile, such as ChatGPT, another messaging app, or a plain-text editor, to preview formatting constraints relevant to that destination.
 - Show the effects of the selected profile on output width, wrapping, and any required text wrapper such as a Markdown code fence. Preview and copy must use the same generated output and formatting settings.
 - Preserve the original drawing while users adjust destination settings. A narrower destination should change the output/preview strategy, not silently rearrange the source drawing.
@@ -93,8 +93,10 @@ Implemented in the current candidate:
 
 - Structural line and arrow endpoints snap to the visible 36-pixel drawing grid and constrain the stroke to horizontal or vertical orientation, including when resizing line endpoints.
 - Added an X-mark object/tool. It is visually editable as a shape and exports as an `X` character at its center.
-- The generated text output and visual preview refresh during drawing and editing, including the active draft stroke.
-- Added a live text output pane that displays the actual generated characters and whitespace.
+- The generated text and visual preview refresh during drawing and editing, including the active draft stroke.
+- The visual preview is the single live output surface; removed the redundant separate text-output pane and the manual Generate ASCII button.
+- The Draw tool stamps grid-aligned X marks, inspired by ASCIIFlow's draw interaction, instead of drawing continuous freehand strokes.
+- Structural line and arrow objects remain selectable and movable as whole objects; their endpoint handles can adjust each segment.
 - Added a draggable desktop divider to resize the drawing and output panes independently; pane resizing does not alter drawing coordinates.
 
 Still planned and not implemented:
@@ -113,7 +115,7 @@ Renderer details:
 - Rectangles and horizontal/vertical line segments use edge masks.
 - Text is rendered last, preserving label readability.
 
-The grid-based drawing interaction, resizable workspace panes, and live text output are implemented in the current candidate. The numeric output frame, explicit overflow reporting, and destination-profile features remain design-only.
+The grid-based drawing interaction, resizable workspace panes, and live visual text preview are implemented in the current candidate. The numeric output frame, explicit overflow reporting, and destination-profile features remain design-only.
 
 ## Acceptance criteria
 
@@ -128,4 +130,4 @@ The grid-based drawing interaction, resizable workspace panes, and live text out
 
 ## Verification state
 
-Source checks previously confirmed the fixed drawing scale and wheel guard, minimum footprints for tiny rectangles and collapsed line/arrow endpoints, configured output limits, edge-mask resolver, rectangle edge tracking, axis-aligned line tracking, adaptive margins, and JavaScript syntax. Live browser rendering, output-width measurement in multiple chat clients, and interaction regression tests remain pending. The current candidate implements grid-snapped structural lines/arrows, X marks, live text output, and a draggable desktop pane divider. The numeric output frame, explicit overflow reporting, and destination profiles remain unimplemented. Source-level consistency checks were performed after editing, but JavaScript syntax checks and browser interaction tests have not been run in an application runtime. This candidate is not accepted until the relevant tests pass.
+Source checks previously confirmed the fixed drawing scale and wheel guard, minimum footprints for tiny rectangles and collapsed line/arrow endpoints, configured output limits, edge-mask resolver, rectangle edge tracking, axis-aligned line tracking, adaptive margins, and JavaScript syntax. Live browser rendering, output-width measurement in multiple chat clients, and interaction regression tests remain pending. The current candidate implements grid-snapped structural lines/arrows, an ASCIIFlow-inspired X-stamp Draw tool, a live visual text preview without a separate text pane or Generate button, and a draggable desktop pane divider. The numeric output frame, explicit overflow reporting, and destination profiles remain unimplemented. Source-level consistency checks were performed after editing, but JavaScript syntax checks and browser interaction tests have not been run in an application runtime. This candidate is not accepted until the relevant tests pass.
