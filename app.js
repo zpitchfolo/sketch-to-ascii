@@ -16,7 +16,8 @@
   const asciiPreviewContext = asciiPreview.getContext('2d');
   let generatedAscii = '';
   let asciiPreviewText = '';
-  const view = { zoom: 0.5, panX: 0, panY: 0, panning: false, panStart: null, centered: false };
+  // Fixed 1:1 drawing scale keeps canvas details predictable for ASCII conversion.
+  const view = { zoom: 1, panX: 0, panY: 0, panning: false, panStart: null, centered: false };
   const asciiView = { zoom: 1, panX: 0, panY: 0, panning: false, panStart: null };
 
   const state = {
@@ -303,19 +304,11 @@
 
   function applyViewTransform() {
     if (!view.centered) {
-      view.panX = (canvasFrame.clientWidth - canvas.width * view.zoom) / 2;
-      view.panY = (canvasFrame.clientHeight - canvas.height * view.zoom) / 2;
+      view.panX = (canvasFrame.clientWidth - canvas.width) / 2;
+      view.panY = (canvasFrame.clientHeight - canvas.height) / 2;
       view.centered = true;
     }
-    canvasWorld.style.transform = `translate(${view.panX}px, ${view.panY}px) scale(${view.zoom})`;
-    let indicator = canvasFrame.querySelector('.canvas-zoom-indicator');
-    if (!indicator) {
-      indicator = document.createElement('div');
-      indicator.className = 'canvas-zoom-indicator';
-      indicator.setAttribute('aria-hidden', 'true');
-      canvasFrame.appendChild(indicator);
-    }
-    indicator.textContent = `${Math.round(view.zoom * 100)}%`;
+    canvasWorld.style.transform = `translate(${view.panX}px, ${view.panY}px)`;
   }
 
   function shiftPoint(point, dx, dy) {
@@ -409,6 +402,10 @@
     element.addEventListener('auxclick', event => { if (event.button === 1) event.preventDefault(); });
     element.addEventListener('contextmenu', event => event.preventDefault());
     element.addEventListener('wheel', event => {
+      if (model === view) {
+        event.preventDefault();
+        return;
+      }
       event.preventDefault();
       const rect = element.getBoundingClientRect();
       const localX = event.clientX - rect.left;
@@ -694,7 +691,15 @@
     if (object.type === 'rect') {
       const a = mapPoint({ x: object.x, y: object.y });
       const b = mapPoint({ x: object.x + object.w, y: object.y + object.h });
-      if (b.x - a.x < 2 || b.y - a.y < 2) { plotLine(grid, a, b, '-'); return; }
+      // Give every rectangle a minimum 2-by-2 character footprint.
+      if (b.x - a.x < 2) {
+        if (a.x + 2 < conversion.columns) b.x = a.x + 2;
+        else a.x = Math.max(0, b.x - 2);
+      }
+      if (b.y - a.y < 2) {
+        if (a.y + 2 < conversion.rows) b.y = a.y + 2;
+        else a.y = Math.max(0, b.y - 2);
+      }
       for (let x = a.x + 1; x < b.x; x++) { putEdge(grid, x, a.y, ['left', 'right']); putEdge(grid, x, b.y, ['left', 'right']); }
       for (let y = a.y + 1; y < b.y; y++) { putEdge(grid, a.x, y, ['up', 'down']); putEdge(grid, b.x, y, ['up', 'down']); }
       putEdge(grid, a.x, a.y, ['right', 'down']);
@@ -706,6 +711,13 @@
     if (object.type === 'line' || object.type === 'arrow') {
       const a = mapPoint({ x: object.x1, y: object.y1 });
       const b = mapPoint({ x: object.x2, y: object.y2 });
+      // If endpoints collapse to one cell, extend the segment along its dominant canvas direction.
+      if (a.x === b.x && a.y === b.y) {
+        const dx = Math.abs(object.x2 - object.x1);
+        const dy = Math.abs(object.y2 - object.y1);
+        if (dx >= dy) b.x = a.x < conversion.columns - 2 ? a.x + 2 : Math.max(0, a.x - 2);
+        else b.y = a.y < conversion.rows - 2 ? a.y + 2 : Math.max(0, a.y - 2);
+      }
       let char = '-';
       if (Math.abs(b.x - a.x) < 2) char = '|';
       else if ((b.y - a.y) / (b.x - a.x) > 0.35) char = '\\';
