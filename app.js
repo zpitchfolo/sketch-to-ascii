@@ -9,16 +9,11 @@
   const undoButton = document.getElementById('undoButton');
   const inkColor = document.getElementById('inkColor');
   const textEditor = document.getElementById('textEditor');
-  const canvasFrame = document.querySelector('.canvas-frame');
   const canvasWorld = document.querySelector('.canvas-world');
   const asciiViewport = document.querySelector('.ascii-viewport');
-  const asciiZoomIndicator = document.querySelector('.ascii-zoom-indicator');
-  const asciiPreviewContext = asciiPreview.getContext('2d');
   let generatedAscii = '';
-  let asciiPreviewText = '';
-  // Fixed 1:1 drawing scale keeps canvas details predictable for ASCII conversion.
-  const view = { zoom: 1, panX: 0, panY: 0, panning: false, panStart: null, centered: false };
-  const asciiView = { zoom: 1, panX: 0, panY: 0, panning: false, panStart: null };
+  // Fixed-size canvas; native scrollbars navigate without changing scale.
+
 
   const state = {
     tool: 'select',
@@ -35,6 +30,8 @@
     resizeHandle: null,
     resizeSnapshot: null,
     editingTextId: null,
+    erasing: false,
+    erasedInGesture: false,
     nextId: 1
   };
 
@@ -326,167 +323,21 @@
     state.selectedId = object.id;
   }
 
-  function applyViewTransform() {
-    if (!view.centered) {
-      view.panX = 0;
-      view.panY = 0;
-      view.centered = true;
-    }
-    canvasWorld.style.transform = `translate(${view.panX}px, ${view.panY}px)`;
+  function updateAsciiPreview(value = generatedAscii) {
+    const empty = !value || value === '(empty drawing)';
+    asciiPreview.textContent = empty ? 'Your ASCII drawing will appear here…' : value;
+    asciiPreview.classList.toggle('is-empty', empty);
   }
 
-  function shiftPoint(point, dx, dy) {
-    if (!point) return;
-    point.x += dx;
-    point.y += dy;
-  }
-
-  function shiftObject(object, dx, dy) {
-    if (object.type === 'rect' || object.type === 'markX' || object.type === 'text') {
-      object.x += dx; object.y += dy;
-    } else if (object.type === 'line' || object.type === 'arrow') {
-      object.x1 += dx; object.y1 += dy; object.x2 += dx; object.y2 += dy;
-    } else if (object.type === 'freehand') {
-      object.points.forEach(point => shiftPoint(point, dx, dy));
-    }
-  }
-
-  function expandDrawingWorld(left = 0, top = 0, right = 0, bottom = 0) {
-    if (!(left || top || right || bottom)) return;
-    state.objects.forEach(object => shiftObject(object, left, top));
-    state.undoStack.forEach(snapshot => snapshot.forEach(object => shiftObject(object, left, top)));
-    if (state.draft) shiftObject(state.draft, left, top);
-    shiftPoint(state.start, left, top);
-    shiftPoint(state.moveOrigin, left, top);
-    if (state.resizeSnapshot) shiftObject(state.resizeSnapshot, left, top);
-    if (state.movedObjectSnapshot) shiftObject(state.movedObjectSnapshot, left, top);
-    if (!textEditor.hidden) {
-      const x = Number.parseFloat(textEditor.dataset.x);
-      const y = Number.parseFloat(textEditor.dataset.y);
-      textEditor.dataset.x = String(x + left);
-      textEditor.dataset.y = String(y + top);
-      textEditor.style.left = (x + left) + 'px';
-      textEditor.style.top = (y + top) + 'px';
-    }
-    canvas.width += left + right;
-    canvas.height += top + bottom;
-    canvas.style.width = canvas.width + 'px';
-    canvas.style.height = canvas.height + 'px';
-    canvasWorld.style.width = canvas.width + 'px';
-    canvasWorld.style.height = canvas.height + 'px';
-    view.panX -= left * view.zoom;
-    view.panY -= top * view.zoom;
-    if (view.panStart) {
-      view.panStart.panX -= left * view.zoom;
-      view.panStart.panY -= top * view.zoom;
-    }
+  function eraseAt(point) {
+    const hit = hitTest(point);
+    if (!hit || !state.erasing) return;
+    if (!state.erasedInGesture) saveUndo();
+    state.erasedInGesture = true;
+    state.objects = state.objects.filter(object => object.id !== hit.id);
+    if (state.selectedId === hit.id) state.selectedId = null;
     render();
   }
-
-  function expandDrawingWorldNearViewEdges() {
-    const margin = 600;
-    const leftEdge = -view.panX / view.zoom;
-    const topEdge = -view.panY / view.zoom;
-    const rightEdge = (canvasFrame.clientWidth - view.panX) / view.zoom;
-    const bottomEdge = (canvasFrame.clientHeight - view.panY) / view.zoom;
-    const grow = 2000;
-    expandDrawingWorld(
-      leftEdge < margin ? grow : 0,
-      topEdge < margin ? grow : 0,
-      rightEdge > canvas.width - margin ? grow : 0,
-      bottomEdge > canvas.height - margin ? grow : 0
-    );
-  }
-
-  canvasFrame.addEventListener('scroll', () => {
-    const margin = 600, grow = 2000;
-    const nearRight = canvasFrame.scrollLeft + canvasFrame.clientWidth >= canvasFrame.scrollWidth - margin;
-    const nearBottom = canvasFrame.scrollTop + canvasFrame.clientHeight >= canvasFrame.scrollHeight - margin;
-    if (nearRight || nearBottom) expandDrawingWorld(0, 0, nearRight ? grow : 0, nearBottom ? grow : 0);
-  });
-
-  function attachPanZoom(element, model, applyTransform) {
-    element.addEventListener('pointerdown', event => {
-      if (event.button !== 1) return;
-      event.preventDefault();
-      model.panning = true;
-      model.panStart = { x: event.clientX, y: event.clientY, panX: model.panX, panY: model.panY };
-      element.classList.add('is-panning');
-      element.setPointerCapture(event.pointerId);
-    });
-    element.addEventListener('pointermove', event => {
-      if (!model.panning || !model.panStart) return;
-      model.panX = model.panStart.panX + event.clientX - model.panStart.x;
-      model.panY = model.panStart.panY + event.clientY - model.panStart.y;
-      if (model === view) expandDrawingWorldNearViewEdges();
-      applyTransform();
-    });
-    function endPan(event) {
-      if (!model.panning) return;
-      model.panning = false;
-      model.panStart = null;
-      element.classList.remove('is-panning');
-      if (element.hasPointerCapture(event.pointerId)) element.releasePointerCapture(event.pointerId);
-    }
-    element.addEventListener('pointerup', endPan);
-    element.addEventListener('pointercancel', endPan);
-    element.addEventListener('auxclick', event => { if (event.button === 1) event.preventDefault(); });
-    element.addEventListener('contextmenu', event => event.preventDefault());
-    element.addEventListener('wheel', event => {
-      if (model === view) {
-        // Let native canvas-frame scrolling work; middle-drag remains the pan gesture.
-        return;
-      }
-      event.preventDefault();
-      const rect = element.getBoundingClientRect();
-      const localX = event.clientX - rect.left;
-      const localY = event.clientY - rect.top;
-      const oldZoom = model.zoom;
-      const nextZoom = Math.max(0.1, Math.min(32, oldZoom * (event.deltaY < 0 ? 1.15 : 1 / 1.15)));
-      const contentX = (localX - model.panX) / oldZoom;
-      const contentY = (localY - model.panY) / oldZoom;
-      model.zoom = nextZoom;
-      model.panX = localX - contentX * nextZoom;
-      model.panY = localY - contentY * nextZoom;
-      if (model === view) expandDrawingWorldNearViewEdges();
-      applyTransform();
-    }, { passive: false });
-  }
-
-  function updateAsciiPreview(value = generatedAscii) {
-    asciiPreviewText = value || 'Your ASCII drawing will appear here…';
-    asciiPreview.classList.toggle('is-empty', !value);
-    applyAsciiViewTransform();
-  }
-
-  function applyAsciiViewTransform() {
-    const width = asciiViewport.clientWidth;
-    const height = asciiViewport.clientHeight;
-    if (!width || !height) return;
-    const pixelRatio = window.devicePixelRatio || 1;
-    const backingWidth = Math.round(width * pixelRatio);
-    const backingHeight = Math.round(height * pixelRatio);
-    if (asciiPreview.width !== backingWidth || asciiPreview.height !== backingHeight) {
-      asciiPreview.width = backingWidth;
-      asciiPreview.height = backingHeight;
-    }
-    asciiPreviewContext.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
-    asciiPreviewContext.clearRect(0, 0, width, height);
-    asciiPreviewContext.save();
-    asciiPreviewContext.translate(asciiView.panX, asciiView.panY);
-    asciiPreviewContext.scale(asciiView.zoom, asciiView.zoom);
-    asciiPreviewContext.font = '11px ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace';
-    asciiPreviewContext.textBaseline = 'top';
-    asciiPreviewContext.fillStyle = asciiPreview.classList.contains('is-empty') ? '#a2a5b0' : '#252833';
-    const lineHeight = 16.5;
-    asciiPreviewText.split('\n').forEach((line, index) => {
-      asciiPreviewContext.fillText(line, 12, 12 + index * lineHeight);
-    });
-    asciiPreviewContext.restore();
-    asciiZoomIndicator.textContent = `${Math.round(asciiView.zoom * 100)}%`;
-  }
-
-  window.addEventListener('resize', applyAsciiViewTransform);
 
   // Resizing panes changes screen space only, never drawing coordinates.
   const workspace = document.querySelector('.workspace');
@@ -506,7 +357,6 @@
       const desired = Math.max(minDrawing, Math.min(total - minOutput - dividerWidth - 16, splitDrag.startWidth + event.clientX - splitDrag.startX));
       const available = Math.max(1, total - dividerWidth - 16);
       workspace.style.gridTemplateColumns = `${desired}px 10px minmax(${minOutput}px, ${Math.max(minOutput, available - desired)}px)`;
-      applyAsciiViewTransform();
     });
     const stopSplitDrag = event => {
       if (!splitDrag || splitDrag.pointerId !== event.pointerId) return;
@@ -521,16 +371,10 @@
       const first = workspace.children[0].getBoundingClientRect().width;
       const next = Math.max(260, Math.min(workspace.clientWidth - 310, first + (event.key === 'ArrowRight' ? 24 : -24)));
       workspace.style.gridTemplateColumns = `${next}px 10px minmax(280px, 1fr)`;
-      applyAsciiViewTransform();
     });
   }
 
   updateAsciiPreview();
-
-  attachPanZoom(canvasFrame, view, applyViewTransform);
-  attachPanZoom(asciiViewport, asciiView, applyAsciiViewTransform);
-  applyViewTransform();
-  applyAsciiViewTransform();
 
   canvas.addEventListener('pointerdown', event => {
     // Textarea clicks are for caret placement, not canvas actions.
@@ -543,6 +387,13 @@
     canvas.setPointerCapture(event.pointerId);
     state.start = point;
     state.drawing = true;
+
+    if (state.tool === 'eraser') {
+      state.erasing = true;
+      state.erasedInGesture = false;
+      eraseAt(point);
+      return;
+    }
 
     if (state.tool === 'select') {
       const handle = findResizeHandle(point);
@@ -599,6 +450,10 @@
   canvas.addEventListener('pointermove', event => {
     if (!state.drawing) return;
     const point = getPoint(event);
+    if (state.tool === 'eraser' && state.erasing) {
+      eraseAt(point);
+      return;
+    }
     if (state.tool === 'select' && state.resizing && state.selectedId && state.resizeSnapshot) {
       const object = getObject(state.selectedId);
       if (object) { resizeObjectFromSnapshot(object, state.resizeSnapshot, state.resizeHandle, point); render(); }
@@ -666,6 +521,8 @@
       }
     }
     state.moving = false;
+    state.erasing = false;
+    state.erasedInGesture = false;
     state.resizing = false;
     state.resizeHandle = null;
     state.resizeSnapshot = null;
@@ -687,7 +544,7 @@
     button.addEventListener('click', () => {
       state.tool = button.dataset.tool;
       document.querySelectorAll('[data-tool]').forEach(item => item.classList.toggle('active', item === button));
-      canvas.style.cursor = state.tool === 'select' ? 'default' : state.tool === 'text' ? 'text' : 'crosshair';
+      canvas.style.cursor = state.tool === 'select' ? 'default' : state.tool === 'text' ? 'text' : state.tool === 'eraser' ? 'not-allowed' : 'crosshair';
     });
   });
 
@@ -902,6 +759,16 @@
     copyText(generatedAscii, 'Copied ASCII.');
   });
 
+  document.getElementById('copyMarkdownButton').addEventListener('click', () => {
+    if (!generatedAscii) {
+      generatedAscii = generateAscii();
+      updateAsciiPreview();
+    }
+    const longestBacktickRun = Math.max(0, ...Array.from(generatedAscii.matchAll(/`+/gu), match => match[0].length));
+    const fence = '`'.repeat(Math.max(3, longestBacktickRun + 1));
+    copyText(`${fence}text\n${generatedAscii}\n${fence}`, 'Copied ASCII in a Markdown code block.');
+  });
+
   document.getElementById('clearButton').addEventListener('click', () => {
     if (!state.objects.length) return;
     saveUndo();
@@ -929,7 +796,5 @@
     event.preventDefault();
   });
 
-  applyViewTransform();
-  applyAsciiViewTransform();
   render();
 })();
