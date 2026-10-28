@@ -13,10 +13,11 @@ Open `index.html` in a modern browser. No build step, backend, account, or AI se
 - Desktop drawing/output panes can be resized independently
 - Select, move, and resize existing objects with visible handles
 - Enter and edit text directly on the canvas in an inline text box
-- Fixed-scale drawing canvas; mouse wheel cannot zoom the drawing. Middle-drag pans the workspace.
-- The drawing world expands as you pan near its edges while preserving object positions and undo snapshots
+- Fixed-size 4000 × 2500 drawing canvas with visible bounds and native horizontal/vertical scrollbars; scrolling never changes scale or coordinates
+- Eraser tool removes objects on click or while dragging over them, with undo support
+- The live preview is actual selectable text, preserving spacing and line breaks, and scrolls vertically without zoom or pan
+- Copy ASCII as plain text, or copy it wrapped in a Markdown code fence for platforms that support Markdown
 - Place consecutive text labels without switching tools
-- Zoom and pan the ASCII artwork inside a clipped preview; generated text is kept internally for copying
 - ASCII generation uses content-based bounds and an adaptive character grid
 - Output is capped at 72 columns by 28 rows for a conservative chat-friendly size
 - Tiny rectangles receive a minimum 2-by-2 character footprint; line segments that would collapse into one cell are extended to remain visible
@@ -33,7 +34,7 @@ Open `index.html` in a modern browser. No build step, backend, account, or AI se
 - Draw stamps X marks on grid points; diagonal intersections remain approximate.
 - The output frame still has no drag-resize or exact numeric width/height controls; destination profiles are not implemented.
 - Live preview and pane resizing have received source-level checks only; browser interaction acceptance remains pending.
-- The drawing world has native scrollbars and expands in 2000-unit increments as you pan near its edges, so it is practically expandable rather than mathematically infinite.
+- The drawing canvas is deliberately bounded to 4000 × 2500 pixels; content beyond those edges is not available.
 - Images are out of scope for the first version.
 - Browser clipboard permissions vary by browser and how the file is opened; a manual-copy fallback is included.
 - The canvas and drawing are held in memory. Persistence is not implemented.
