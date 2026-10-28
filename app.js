@@ -90,18 +90,20 @@
     return { start: a, end: b };
   }
 
-  function drawArrow(context, a, b) {
-    context.beginPath();
-    context.moveTo(a.x, a.y);
-    context.lineTo(b.x, b.y);
-    context.stroke();
-    const angle = Math.atan2(b.y - a.y, b.x - a.x);
-    const headLength = 15;
-    context.beginPath();
-    context.moveTo(b.x, b.y);
-    context.lineTo(b.x - headLength * Math.cos(angle - Math.PI / 6), b.y - headLength * Math.sin(angle - Math.PI / 6));
-    context.moveTo(b.x, b.y);
-    context.lineTo(b.x - headLength * Math.cos(angle + Math.PI / 6), b.y - headLength * Math.sin(angle + Math.PI / 6));
+  function routePoints(object) {
+    const a = { x: object.x1, y: object.y1 }, b = { x: object.x2, y: object.y2 };
+    if (a.x === b.x || a.y === b.y) return [a, b];
+    return Math.abs(b.x - a.x) >= Math.abs(b.y - a.y) ? [a, { x: b.x, y: a.y }, b] : [a, { x: a.x, y: b.y }, b];
+  }
+  function drawArrow(context, points) {
+    context.beginPath(); context.moveTo(points[0].x, points[0].y);
+    points.slice(1).forEach(point => context.lineTo(point.x, point.y)); context.stroke();
+    const end = points[points.length - 1], previous = points[points.length - 2];
+    const angle = Math.atan2(end.y - previous.y, end.x - previous.x), headLength = 15;
+    context.beginPath(); context.moveTo(end.x, end.y);
+    context.lineTo(end.x - headLength * Math.cos(angle - Math.PI / 6), end.y - headLength * Math.sin(angle - Math.PI / 6));
+    context.moveTo(end.x, end.y);
+    context.lineTo(end.x - headLength * Math.cos(angle + Math.PI / 6), end.y - headLength * Math.sin(angle + Math.PI / 6));
     context.stroke();
   }
 
@@ -135,9 +137,11 @@
       context.moveTo(object.x + object.w, object.y); context.lineTo(object.x, object.y + object.h);
       context.stroke();
     } else if (object.type === 'line') {
-      context.beginPath(); context.moveTo(object.x1, object.y1); context.lineTo(object.x2, object.y2); context.stroke();
+      const points = routePoints(object);
+      context.beginPath(); context.moveTo(points[0].x, points[0].y);
+      points.slice(1).forEach(point => context.lineTo(point.x, point.y)); context.stroke();
     } else if (object.type === 'arrow') {
-      drawArrow(context, { x: object.x1, y: object.y1 }, { x: object.x2, y: object.y2 });
+      drawArrow(context, routePoints(object));
     } else if (object.type === 'text') {
       context.font = object.font || FONT;
       context.textBaseline = 'top';
@@ -163,7 +167,8 @@
   function getBounds(object) {
     if (object.type === 'rect' || object.type === 'markX') return { x: object.x, y: object.y, w: object.w, h: object.h };
     if (object.type === 'line' || object.type === 'arrow') {
-      return { x: Math.min(object.x1, object.x2), y: Math.min(object.y1, object.y2), w: Math.abs(object.x2 - object.x1), h: Math.abs(object.y2 - object.y1) };
+      const points = routePoints(object), xs = points.map(p => p.x), ys = points.map(p => p.y);
+      return { x: Math.min(...xs), y: Math.min(...ys), w: Math.max(...xs) - Math.min(...xs), h: Math.max(...ys) - Math.min(...ys) };
     }
     if (object.type === 'freehand') {
       const xs = object.points.map(p => p.x), ys = object.points.map(p => p.y);
@@ -176,10 +181,8 @@
 
   function getHandlePoints(bounds, object = null) {
     if (object && (object.type === 'line' || object.type === 'arrow')) {
-      return [
-        { name: 'p1', x: object.x1, y: object.y1 },
-        { name: 'p2', x: object.x2, y: object.y2 }
-      ];
+      const points = routePoints(object);
+      return [{ name: 'p1', x: points[0].x, y: points[0].y }, { name: 'p2', x: points[points.length - 1].x, y: points[points.length - 1].y }];
     }
     const left = bounds.x, right = bounds.x + bounds.w, top = bounds.y, bottom = bounds.y + bounds.h;
     const midX = (left + right) / 2, midY = (top + bottom) / 2;
@@ -201,15 +204,9 @@
 
   function resizeObjectFromSnapshot(object, snapshot, handle, point) {
     if ((object.type === 'line' || object.type === 'arrow') && (handle === 'p1' || handle === 'p2')) {
-      if (handle === 'p1') {
-        const snapped = snapStructuralEndpoint({ x: object.x2, y: object.y2 }, point);
-        object.x2 = snapped.start.x; object.y2 = snapped.start.y;
-        object.x1 = snapped.end.x; object.y1 = snapped.end.y;
-      } else {
-        const snapped = snapStructuralEndpoint({ x: object.x1, y: object.y1 }, point);
-        object.x1 = snapped.start.x; object.y1 = snapped.start.y;
-        object.x2 = snapped.end.x; object.y2 = snapped.end.y;
-      }
+      const snapped = snapGridPoint(point);
+      if (handle === 'p1') { object.x1 = snapped.x; object.y1 = snapped.y; }
+      else { object.x2 = snapped.x; object.y2 = snapped.y; }
       return;
     }
     const original = getBounds(snapshot);
@@ -302,7 +299,8 @@
       const object = state.objects[index];
       const b = getBounds(object);
       if (object.type === 'line' || object.type === 'arrow') {
-        if (distanceToSegment(point, { x: object.x1, y: object.y1 }, { x: object.x2, y: object.y2 }) < 12) return object;
+        const route = routePoints(object);
+        for (let i = 1; i < route.length; i++) if (distanceToSegment(point, route[i - 1], route[i]) < 12) return object;
       } else if (object.type === 'freehand') {
         for (let i = 1; i < object.points.length; i++) {
           if (distanceToSegment(point, object.points[i - 1], object.points[i]) < 12) return object;
@@ -330,8 +328,8 @@
 
   function applyViewTransform() {
     if (!view.centered) {
-      view.panX = (canvasFrame.clientWidth - canvas.width) / 2;
-      view.panY = (canvasFrame.clientHeight - canvas.height) / 2;
+      view.panX = 0;
+      view.panY = 0;
       view.centered = true;
     }
     canvasWorld.style.transform = `translate(${view.panX}px, ${view.panY}px)`;
@@ -641,9 +639,9 @@
     }
     else if (state.draft.type === 'rect' || state.draft.type === 'markX') Object.assign(state.draft, normalizedRect(state.start, point));
     else {
-      const snapped = snapStructuralEndpoint(state.start, point);
-      state.draft.x1 = snapped.start.x; state.draft.y1 = snapped.start.y;
-      state.draft.x2 = snapped.end.x; state.draft.y2 = snapped.end.y;
+      const start = snapGridPoint(state.start), end = snapGridPoint(point);
+      state.draft.x1 = start.x; state.draft.y1 = start.y;
+      state.draft.x2 = end.x; state.draft.y2 = end.y;
     }
     render();
   });
@@ -815,26 +813,15 @@
       return;
     }
     if (object.type === 'line' || object.type === 'arrow') {
-      const a = mapPoint({ x: object.x1, y: object.y1 });
-      const b = mapPoint({ x: object.x2, y: object.y2 });
-      // If endpoints collapse to one cell, extend the segment along its dominant canvas direction.
-      if (a.x === b.x && a.y === b.y) {
-        const dx = Math.abs(object.x2 - object.x1);
-        const dy = Math.abs(object.y2 - object.y1);
-        if (dx >= dy) b.x = a.x < conversion.columns - 2 ? a.x + 2 : Math.max(0, a.x - 2);
-        else b.y = a.y < conversion.rows - 2 ? a.y + 2 : Math.max(0, a.y - 2);
+      const route = routePoints(object).map(mapPoint);
+      for (let i = 1; i < route.length; i++) {
+        const a = route[i - 1], b = route[i];
+        if (a.x !== b.x || a.y !== b.y) plotLine(grid, a, b, a.y === b.y ? '-' : '|');
       }
-      let char = '-';
-      if (Math.abs(b.x - a.x) < 2) char = '|';
-      else if ((b.y - a.y) / (b.x - a.x) > 0.35) char = '\\';
-      else if ((b.y - a.y) / (b.x - a.x) < -0.35) char = '/';
-      plotLine(grid, a, b, char);
       if (object.type === 'arrow') {
-        if (Math.abs(b.x - a.x) >= Math.abs(b.y - a.y)) {
-          put(grid, b.x, b.y, b.x >= a.x ? '>' : '<');
-        } else {
-          put(grid, b.x, b.y, b.y >= a.y ? 'v' : '^');
-        }
+        const end = route[route.length - 1], previous = route[route.length - 2];
+        if (end.y === previous.y) put(grid, end.x, end.y, end.x >= previous.x ? '>' : '<');
+        else put(grid, end.x, end.y, end.y >= previous.y ? 'v' : '^');
       }
       return;
     }
