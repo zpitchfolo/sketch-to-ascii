@@ -1,7 +1,7 @@
-# SketchText Design Refinement v0.7.0
+# SketchText Design Refinement v0.8.0
 
 **Artifact:** Chat-sized output and intersection-aware line art  
-**Version:** 0.7.0  
+**Version:** 0.8.0  
 **Status:** Implementation candidate; runtime acceptance checks pending  
 **Date:** 2026-10-27  
 **Base design:** Earlier refinement retained in Git history  
@@ -28,7 +28,7 @@ https://github.com/zpitchfolo/Meta-Modules/blob/main/workflows/Development-State
 6. Keep diagonal strokes approximate. A diagonal crossing may still need a style-specific glyph, because the renderer cannot infer whether it means a connection or an overlay.
 7. Use a fixed 1:1 drawing-canvas scale. Mouse-wheel input must not zoom the drawing workspace; middle-drag panning remains available. Keep ASCII-preview zoom separate from drawing-canvas scale.
 8. Prevent small objects from silently disappearing in output. Expand mapped rectangles to a minimum 2-by-2 character footprint and extend line or arrow segments if both endpoints map to the same character cell. This intentionally prioritizes visible output over exact proportions for tiny objects.
-9. Keep the drawing canvas as the spatial editing surface and the visual preview as the single live text-output surface. The generated text remains a first-class artifact for writing, sharing, and LLM input.
+9. Keep the drawing canvas as the sole editing surface and the generated text preview as the actual, selectable text artifact. The output should be easy to copy into chats, forums, comments, and documents.
 
 ## Proposed Feature: Grid-Based Drawing, Resizable Output Frame, and Live Text Preview
 
@@ -69,9 +69,9 @@ Use [ASCIIFlow](https://asciiflow.com/) as prior art for the grid-based drawing 
 ### Design constraints and open decisions
 
 - A destination profile can model known constraints, but cannot guarantee a pixel-perfect match for every client, font, zoom level, or viewport. Profiles should describe their assumptions and allow a user-adjustable width where exact client behavior is unknown.
-- Decide whether the text pane is preview-only or directly editable. If direct edits are supported, define whether they are export-only edits or can be mapped back to drawing objects; do not imply round-trip editing unless it is implemented.
+- The text preview is read-only. Editing generated characters directly is intentionally out of scope because the drawing canvas is the source of truth.
 - Do not add Braille-pattern output as part of this feature by default. The current box-drawing/ASCII-style output is the known working baseline; alternate encodings require evidence that they improve the intended LLM and chat use cases.
-- Keep the workflow lightweight: draw, inspect the live text, choose a destination if needed, then copy and continue writing.
+- Keep the workflow lightweight: draw, inspect the live text, adjust or erase objects, then copy plain text or a Markdown code block and continue writing.
 
 ### Acceptance criteria for the proposed feature
 
@@ -131,3 +131,12 @@ The grid-based drawing interaction, scrollable and edge-expanding canvas, orthog
 ## Verification state
 
 Source checks previously confirmed the fixed drawing scale and wheel guard, minimum footprints for tiny rectangles and collapsed line/arrow endpoints, configured output limits, edge-mask resolver, rectangle edge tracking, axis-aligned line tracking, adaptive margins, and JavaScript syntax. Live browser rendering, output-width measurement in multiple chat clients, and interaction regression tests remain pending. The current candidate implements grid-snapped structural lines/arrows, an ASCIIFlow-inspired X-stamp Draw tool, a live visual text preview without a separate text pane or Generate button, and a draggable desktop pane divider. The numeric output frame, explicit overflow reporting, and destination profiles remain unimplemented. Source-level consistency checks were performed after editing, but JavaScript syntax checks and browser interaction tests have not been run in an application runtime. This candidate is not accepted until the relevant tests pass.
+
+
+## Implemented interaction refinement (v0.8.0)
+
+- The drawing canvas is fixed at 4000 × 2500 pixels. Its visible bounds and native scrollbars define the workspace; it does not pan, zoom, or auto-expand.
+- The preview is the actual generated text in a selectable, read-only `pre` element. It preserves whitespace and line breaks, scrolls vertically, and does not zoom or pan.
+- The eraser removes the topmost object under the pointer and supports click-and-drag removal. A gesture is undoable as one action.
+- Copy ASCII emits plain generated text. Copy Markdown wraps the drawing in a fenced `text` code block and lengthens the fence when the drawing itself contains backticks.
+- These are source-level implementation changes. Browser interaction and clipboard acceptance tests remain pending.
