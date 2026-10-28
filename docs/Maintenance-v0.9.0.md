@@ -1,7 +1,7 @@
-# SketchText Maintenance v0.11.3
+# SketchText Maintenance v0.11.4
 
-**Artifact:** Chat-fit ASCII output and intersection handling  
-**Version:** 0.11.3  
+**Artifact:** Responsive drawing surface and chat-fit ASCII output  
+**Version:** 0.11.4  
 **Status:** Implementation candidate; syntax/runtime acceptance checks pending  
 **Date:** 2026-10-27  
 **Target:** `main`  
@@ -12,7 +12,7 @@
 - Improve broken intersections between rectangles and lines.
 - Keep generated output compact enough for typical chat windows of unknown width.
 - Preserve the preview and copy workflows.
-- Keep the drawing canvas fixed at 4000 × 2500 pixels, navigated by native scrollbars without pan, zoom, or auto-expansion.
+- Keep the drawing surface readable at the pane's width, eliminate horizontal scrolling, and preserve vertical scrolling.
 - Make the live preview the actual read-only generated text with vertical scrolling only.
 - Add an undoable eraser and a Markdown-fenced copy option.
 - Prevent tiny rectangles and very short lines/arrows from collapsing into invisible or ambiguous output.
@@ -27,7 +27,7 @@
 - Added per-cell edge masks and Unicode junction resolution for rectangles and horizontal/vertical lines.
 - Rectangle borders and axis-aligned lines now merge connection masks rather than blindly overwriting existing edge characters.
 - Kept diagonal strokes approximate and documented this limitation; the renderer cannot infer semantic connection intent.
-- Replaced canvas panning and automatic expansion with a bounded 4000 × 2500 drawing surface and native horizontal/vertical scrollbars.
+- Replaced the fixed 4000 × 2500 surface with a responsive-width, 1600-pixel-tall drawing surface. The bitmap width follows the pane; horizontal overflow is clipped and vertical scrolling remains available.
 - Replaced the preview canvas with a selectable `<pre>` containing generated text; it preserves line breaks and spaces and scrolls vertically only.
 - Added an eraser that removes objects on click/drag with one undo snapshot per gesture, plus Markdown-fenced copy output.
 - Give mapped rectangles a minimum 2-by-2 character footprint and extend line/arrow segments when both endpoints map to the same cell.
@@ -52,7 +52,7 @@ Previously recorded source checks:
 - [x] Unicode edge-mask mapping includes common corners, tees, and four-way crossings.
 - [x] Rectangle corners and borders use edge masks.
 - [x] Horizontal and vertical lines use edge masks.
-- [x] Drawing canvas is fixed at 4000 × 2500 pixels and uses native scrollbars for navigation.
+- [x] Drawing canvas width tracks the pane and its 1600-pixel height preserves a readable drawing scale; horizontal overflow is hidden and vertical scrolling remains enabled.
 - [x] Preview uses a selectable `<pre>` element and only enables vertical scrolling.
 - [x] Eraser, Markdown copy button, and their handlers are present.
 - [x] Tiny rectangles have a minimum 2-by-2 character footprint.
@@ -72,7 +72,7 @@ Previously recorded source checks:
 - [ ] Interaction test: changing frame dimensions preserves source objects, updates preview, and visibly flags overflow without silent deletion or distortion.
 - [ ] Runtime test: live text output and visual preview update during pointer movement, object edits, undo, and text-label commits.
 - [ ] Runtime test: grid-snapped lines/arrows draw as right-angle paths, preserve their shape when moved, and reroute when either endpoint is dragged.
-- [ ] Runtime test: native scrollbars navigate the fixed canvas without changing coordinates or dimensions.
+- [ ] Runtime test: the canvas fits the pane without horizontal scrolling, remains readable, and scrolls vertically through its 1600-pixel height.
 - [ ] Runtime test: eraser removes objects by click/drag and undo restores erased objects.
 - [ ] Runtime test: Markdown copy produces a valid fenced code block, including labels with backticks.
 - [ ] Runtime test: preview preserves spaces/newlines and only scrolls vertically.
@@ -80,7 +80,7 @@ Previously recorded source checks:
 - [ ] Runtime test: lines and arrows can be selected, moved, and adjusted by their endpoint handles.
 - [ ] Runtime test: desktop pane divider works with pointer and keyboard, and is hidden on narrow screens.
 
-## Verification and acceptance status
+## Responsive canvas update (v0.11.4)\n\n- Removed the 8:5 proportional scaling that made the drawing surface and labels too small in the pane.\n- Canvas bitmap width now tracks the canvas viewport width; its height remains 1600 CSS pixels. Text and the 36-pixel grid retain readable screen sizing.\n- Horizontal overflow is clipped by the canvas frame. Vertical overflow remains scrollable within that frame.\n- The drawing pane can still be resized; browser interaction testing is required to confirm existing objects remain usable through pane resizing.\n\n## Verification and acceptance status
 
 This candidate changes `app.js`, `index.html`, `style.css`, `README.md`, and the working design/maintenance records. Source-level consistency checks confirmed the new tool, snapping helpers, live output node, draft preview path, pane divider handlers, and responsive divider rule are present. The current JavaScript candidate was parsed successfully without executing it, and the `getElementById` references in the app resolve to unique IDs in the HTML. Browser interaction tests and runtime acceptance tests have not been run. The numeric output frame, overflow reporting, and destination profiles remain proposed work.
 
