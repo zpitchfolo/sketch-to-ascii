@@ -1,7 +1,7 @@
-# SketchText Design Refinement v0.8.1
+# SketchText Design Refinement v0.8.2
 
 **Artifact:** Chat-sized output and intersection-aware line art  
-**Version:** 0.8.1  
+**Version:** 0.8.2  
 **Status:** Implementation candidate; runtime acceptance checks pending  
 **Date:** 2026-10-27  
 **Base design:** Earlier refinement retained in Git history  
@@ -26,7 +26,7 @@ https://github.com/zpitchfolo/Meta-Modules/blob/main/workflows/Development-State
 4. Track horizontal and vertical edge connections in a per-cell bitmask. Resolve compatible overlaps into Unicode box-drawing junctions such as `┬`, `├`, `┼`, and `┤`.
 5. Use the same topology-aware edge writer for rectangle borders and axis-aligned lines, so their intersections combine rather than last-write-wins.
 6. Keep diagonal strokes approximate. A diagonal crossing may still need a style-specific glyph, because the renderer cannot infer whether it means a connection or an overlay.
-7. Keep a responsive-width drawing surface that matches the drawing pane, with a 1600-pixel-tall workspace. The drawing bitmap width tracks the pane so text and grid marks stay readable. Horizontal scrolling is disabled; vertical scrolling navigates the tall surface without zoom or pan. The generated-text preview is the actual text in a read-only, selectable text surface with vertical scrolling only.
+7. Keep a stable 1200 × 1600 CSS-pixel drawing surface. Do not change the canvas bitmap dimensions in response to pane resizing because changing them resets the canvas coordinate space and has caused drawing regressions. Horizontal scrolling is disabled; vertical scrolling navigates the tall surface. The generated-text preview is the actual text in a read-only, selectable text surface with vertical scrolling only.
 8. Prevent small objects from silently disappearing in output. Expand mapped rectangles to a minimum 2-by-2 character footprint and extend line or arrow segments if both endpoints map to the same character cell. This intentionally prioritizes visible output over exact proportions for tiny objects.
 9. Keep the drawing canvas as the sole editing surface and the generated text preview as the actual, selectable text artifact. The output should be easy to copy into chats, forums, comments, and documents.
 
@@ -135,7 +135,7 @@ Source checks previously confirmed the drawing scale and wheel guard, minimum fo
 
 ## Implemented interaction refinement (v0.8.0)
 
-- The drawing canvas fits the pane width at a readable scale and remains 1600 pixels tall. Horizontal scrolling is disabled and vertical scrolling remains available; it does not pan, zoom, or auto-expand.
+- The drawing canvas retains fixed 1200 × 1600 CSS-pixel dimensions. Horizontal scrolling is disabled and vertical scrolling remains available; the right side may be clipped in a narrower pane.
 - The preview is the actual generated text in a selectable, read-only `pre` element. It preserves whitespace and line breaks, scrolls vertically, and does not zoom or pan.
 - The eraser removes the topmost object under the pointer and supports click-and-drag removal. A gesture is undoable as one action.
 - Copy ASCII emits plain generated text. Copy Markdown wraps the drawing in a fenced `text` code block and lengthens the fence when the drawing itself contains backticks.
