@@ -238,11 +238,13 @@
     textEditor.value = existingObject ? existingObject.text : '';
     textEditor.dataset.x = String(x);
     textEditor.dataset.y = String(y);
-    textEditor.style.left = x + 'px';
-    textEditor.style.top = y + 'px';
-    textEditor.style.width = Math.max(140, Math.min(320, existingObject ? getBounds(existingObject).w + 24 : 220)) + 'px';
-    textEditor.style.height = Math.max(32, existingObject ? getBounds(existingObject).h + 12 : 38) + 'px';
-    textEditor.style.fontSize = (existingObject ? fontSize(existingObject) : 16) + 'px';
+    const scaleX = canvas.getBoundingClientRect().width / canvas.width;
+    const scaleY = canvas.getBoundingClientRect().height / canvas.height;
+    textEditor.style.left = (x * scaleX) + 'px';
+    textEditor.style.top = (y * scaleY) + 'px';
+    textEditor.style.width = Math.max(60, Math.min(320, existingObject ? getBounds(existingObject).w * scaleX + 24 : 220 * scaleX)) + 'px';
+    textEditor.style.height = Math.max(24, existingObject ? getBounds(existingObject).h * scaleY + 12 : 38 * scaleY) + 'px';
+    textEditor.style.fontSize = ((existingObject ? fontSize(existingObject) : 16) * scaleX) + 'px';
     textEditor.hidden = false;
     textEditor.focus();
     textEditor.setSelectionRange(textEditor.value.length, textEditor.value.length);
