@@ -398,6 +398,13 @@
     );
   }
 
+  canvasFrame.addEventListener('scroll', () => {
+    const margin = 600, grow = 2000;
+    const nearRight = canvasFrame.scrollLeft + canvasFrame.clientWidth >= canvasFrame.scrollWidth - margin;
+    const nearBottom = canvasFrame.scrollTop + canvasFrame.clientHeight >= canvasFrame.scrollHeight - margin;
+    if (nearRight || nearBottom) expandDrawingWorld(0, 0, nearRight ? grow : 0, nearBottom ? grow : 0);
+  });
+
   function attachPanZoom(element, model, applyTransform) {
     element.addEventListener('pointerdown', event => {
       if (event.button !== 1) return;
@@ -427,7 +434,7 @@
     element.addEventListener('contextmenu', event => event.preventDefault());
     element.addEventListener('wheel', event => {
       if (model === view) {
-        event.preventDefault();
+        // Let native canvas-frame scrolling work; middle-drag remains the pan gesture.
         return;
       }
       event.preventDefault();
