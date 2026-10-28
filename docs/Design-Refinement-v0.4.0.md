@@ -26,7 +26,7 @@ https://github.com/zpitchfolo/Meta-Modules/blob/main/workflows/Development-State
 4. Track horizontal and vertical edge connections in a per-cell bitmask. Resolve compatible overlaps into Unicode box-drawing junctions such as `┬`, `├`, `┼`, and `┤`.
 5. Use the same topology-aware edge writer for rectangle borders and axis-aligned lines, so their intersections combine rather than last-write-wins.
 6. Keep diagonal strokes approximate. A diagonal crossing may still need a style-specific glyph, because the renderer cannot infer whether it means a connection or an overlay.
-7. Use a fixed 1:1 drawing-canvas scale. Mouse-wheel input must not zoom the drawing workspace; middle-drag panning remains available. Keep ASCII-preview zoom separate from drawing-canvas scale.
+7. Keep a fixed 4000 × 2500 drawing surface with visible boundaries and native horizontal/vertical scrollbars. Scrolling navigates the surface and never pans the artwork, changes its scale, or expands the canvas. The generated-text preview is the actual text in a read-only, selectable text surface with vertical scrolling only.
 8. Prevent small objects from silently disappearing in output. Expand mapped rectangles to a minimum 2-by-2 character footprint and extend line or arrow segments if both endpoints map to the same character cell. This intentionally prioritizes visible output over exact proportions for tiny objects.
 9. Keep the drawing canvas as the sole editing surface and the generated text preview as the actual, selectable text artifact. The output should be easy to copy into chats, forums, comments, and documents.
 
@@ -115,7 +115,7 @@ Renderer details:
 - Rectangles and horizontal/vertical line segments use edge masks.
 - Text is rendered last, preserving label readability.
 
-The grid-based drawing interaction, scrollable and edge-expanding canvas, orthogonal line/arrow routing with editable endpoints, resizable workspace panes, and live visual text preview are implemented in the current candidate. The numeric output frame, explicit overflow reporting, and destination-profile features remain design-only.
+The grid-based drawing interaction, fixed-size scrollable canvas, orthogonal line/arrow routing with editable endpoints, resizable workspace panes, read-only text preview, eraser, and plain-text/Markdown copy actions are implemented in the current candidate. The numeric output frame, explicit overflow reporting, and destination-profile features remain design-only.
 
 ## Acceptance criteria
 
@@ -126,7 +126,7 @@ The grid-based drawing interaction, scrollable and edge-expanding canvas, orthog
 - Overlapping rectangles retain connected corners and edges where possible.
 - Text labels remain visible over shape edges.
 - Preview and copy actions use the same output.
-- Existing selection, text editing, undo, and drawing zoom still work.
+- Existing selection, text editing, and undo work; the drawing canvas no longer supports pan or zoom gestures.
 
 ## Verification state
 
