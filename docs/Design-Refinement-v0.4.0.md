@@ -115,7 +115,7 @@ Renderer details:
 - Rectangles and horizontal/vertical line segments use edge masks.
 - Text is rendered last, preserving label readability.
 
-The grid-based drawing interaction, resizable workspace panes, and live visual text preview are implemented in the current candidate. The numeric output frame, explicit overflow reporting, and destination-profile features remain design-only.
+The grid-based drawing interaction, scrollable and edge-expanding canvas, orthogonal line/arrow routing with editable endpoints, resizable workspace panes, and live visual text preview are implemented in the current candidate. The numeric output frame, explicit overflow reporting, and destination-profile features remain design-only.
 
 ## Acceptance criteria
 
