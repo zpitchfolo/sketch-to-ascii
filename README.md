@@ -13,7 +13,7 @@ Open `index.html` in a modern browser. No build step, backend, account, or AI se
 - Desktop drawing/output panes can be resized independently
 - Select, move, and resize existing objects with visible handles
 - Enter and edit text directly on the canvas in an inline text box
-- Fixed-size 4000 × 2500 drawing canvas with visible bounds and native horizontal/vertical scrollbars; scrolling never changes scale or coordinates
+- Responsive drawing canvas that fits the pane width without horizontal scrolling; the underlying drawing coordinate space remains 4000 × 2500
 - Eraser tool removes objects on click or while dragging over them, with undo support
 - The live preview is actual selectable text, preserving spacing and line breaks, and scrolls vertically without zoom or pan
 - Copy ASCII as plain text, or copy it wrapped in a Markdown code fence for platforms that support Markdown
