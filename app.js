@@ -11,6 +11,7 @@
   const textEditor = document.getElementById('textEditor');
   const canvasWorld = document.querySelector('.canvas-world');
   const asciiViewport = document.querySelector('.ascii-viewport');
+  const canvasFrame = document.querySelector('.canvas-frame');
   let generatedAscii = '';
   // Fixed-size canvas; native scrollbars navigate without changing scale.
 
@@ -377,6 +378,17 @@
   }
 
   updateAsciiPreview();
+
+  // Match the drawing surface to the pane width so it never needs horizontal scrolling.
+  const resizeCanvasToFrame = () => {
+    const nextWidth = Math.max(1, Math.floor(canvasFrame.clientWidth));
+    if (canvas.width !== nextWidth) {
+      canvas.width = nextWidth;
+      render();
+    }
+  };
+  new ResizeObserver(resizeCanvasToFrame).observe(canvasFrame);
+  resizeCanvasToFrame();
 
   canvas.addEventListener('pointerdown', event => {
     // Textarea clicks are for caret placement, not canvas actions.
