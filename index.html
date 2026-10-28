@@ -26,6 +26,7 @@
           <button class="tool-button" data-tool="line" type="button" title="Line" aria-label="Line">╱ <span>Line</span></button>
           <button class="tool-button" data-tool="arrow" type="button" title="Arrow" aria-label="Arrow">➜ <span>Arrow</span></button>
           <button class="tool-button" data-tool="text" type="button" title="Text label" aria-label="Text label">T <span>Text</span></button>
+          <button class="tool-button" data-tool="eraser" type="button" title="Erase objects by clicking or dragging over them" aria-label="Eraser">⌫ <span>Eraser</span></button>
           <label class="color-control" title="Drawing color">
             <span>Ink</span><input id="inkColor" type="color" value="#252833" aria-label="Drawing color">
           </label>
@@ -35,7 +36,7 @@
             <canvas id="drawingCanvas" width="4000" height="2500" aria-label="Drawing canvas"></canvas>
             <textarea id="textEditor" class="canvas-text-editor" aria-label="Edit canvas text" rows="1" hidden></textarea>
           </div>
-          <div class="canvas-hint">Choose a tool. Middle-drag to pan · fixed drawing scale.</div>
+          <div class="canvas-hint">Choose a tool. Use the scrollbars to navigate the fixed canvas.</div>
         </div>
         <div class="canvas-footer">
           <span>Tip: rectangles, arrows, and labels tend to convert cleanly.</span>
@@ -54,16 +55,16 @@
           <span class="status-dot" aria-hidden="true"></span>
         </div>
         <p class="section-description">Your sketch becomes live text as you draw. Copy the drawing alone or include your optional descriptor.</p>
-        <p class="field-label">Live text preview <span class="optional">middle-drag to pan · wheel to zoom</span></p>
+        <p class="field-label">Live text preview <span class="optional">generated text · scroll vertically</span></p>
         <div class="ascii-viewport" aria-label="ASCII preview viewport">
-          <canvas id="asciiPreview" class="ascii-preview is-empty" aria-label="Zoomable visual preview of generated ASCII"></canvas>
-          <span class="ascii-zoom-indicator" aria-hidden="true">100%</span>
+          <pre id="asciiPreview" class="ascii-preview is-empty" aria-label="Generated ASCII text">Your ASCII drawing will appear here…</pre>
         </div>
         <label class="field-label" for="descriptor">Descriptor <span class="optional">optional</span></label>
         <textarea id="descriptor" class="descriptor" rows="3" placeholder="Explain anything the drawing alone doesn't show…"></textarea>
         <div class="output-actions">
           <button id="copyButton" class="button button-primary" type="button">Copy Drawing + Descriptor</button>
           <button id="copyAsciiButton" class="button button-secondary" type="button">Copy ASCII</button>
+          <button id="copyMarkdownButton" class="button button-secondary" type="button">Copy Markdown</button>
         </div>
         <p id="statusMessage" class="status-message" role="status" aria-live="polite">Nothing copied yet.</p>
       </aside>
