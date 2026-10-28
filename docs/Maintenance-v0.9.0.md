@@ -65,7 +65,8 @@ Previously recorded source checks:
 - [ ] Interaction test: output frame supports drag resizing and exact numeric width/height in characters/lines.
 - [ ] Interaction test: changing frame dimensions preserves source objects, updates preview, and visibly flags overflow without silent deletion or distortion.
 - [ ] Runtime test: live text output and visual preview update during pointer movement, object edits, undo, and text-label commits.
-- [ ] Runtime test: grid-snapped lines/arrows remain horizontal or vertical during drawing, moving, and endpoint resizing.
+- [ ] Runtime test: grid-snapped lines/arrows draw as right-angle paths, preserve their shape when moved, and reroute when either endpoint is dragged.
+- [ ] Runtime test: canvas scrollbars navigate the large drawing world, and automatic expansion preserves objects, active drafts, and undo snapshots.
 - [ ] Runtime test: the Draw brush stamps X marks at grid points and each stamp exports as `X`.
 - [ ] Runtime test: lines and arrows can be selected, moved, and adjusted by their endpoint handles.
 - [ ] Runtime test: desktop pane divider works with pointer and keyboard, and is hidden on narrow screens.
