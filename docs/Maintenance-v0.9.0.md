@@ -1,7 +1,7 @@
-# SketchText Maintenance v0.11.4
+# SketchText Maintenance v0.11.5
 
 **Artifact:** Responsive drawing surface and chat-fit ASCII output  
-**Version:** 0.11.4  
+**Version:** 0.11.5  
 **Status:** Implementation candidate; syntax/runtime acceptance checks pending  
 **Date:** 2026-10-27  
 **Target:** `main`  
@@ -12,7 +12,7 @@
 - Improve broken intersections between rectangles and lines.
 - Keep generated output compact enough for typical chat windows of unknown width.
 - Preserve the preview and copy workflows.
-- Keep the drawing surface readable at the pane's width, eliminate horizontal scrolling, and preserve vertical scrolling.
+- Keep drawing tools functional with a stable coordinate system; eliminate horizontal scrolling and preserve vertical scrolling.
 - Make the live preview the actual read-only generated text with vertical scrolling only.
 - Add an undoable eraser and a Markdown-fenced copy option.
 - Prevent tiny rectangles and very short lines/arrows from collapsing into invisible or ambiguous output.
@@ -27,7 +27,7 @@
 - Added per-cell edge masks and Unicode junction resolution for rectangles and horizontal/vertical lines.
 - Rectangle borders and axis-aligned lines now merge connection masks rather than blindly overwriting existing edge characters.
 - Kept diagonal strokes approximate and documented this limitation; the renderer cannot infer semantic connection intent.
-- Replaced the fixed 4000 × 2500 surface with a responsive-width, 1600-pixel-tall drawing surface. The bitmap width follows the pane; horizontal overflow is clipped and vertical scrolling remains available.
+- Replaced the unstable responsive bitmap resizing with a fixed 1200 × 1600 CSS-pixel drawing surface. Horizontal overflow is clipped and vertical scrolling remains available.
 - Replaced the preview canvas with a selectable `<pre>` containing generated text; it preserves line breaks and spaces and scrolls vertically only.
 - Added an eraser that removes objects on click/drag with one undo snapshot per gesture, plus Markdown-fenced copy output.
 - Give mapped rectangles a minimum 2-by-2 character footprint and extend line/arrow segments when both endpoints map to the same cell.
