@@ -12,7 +12,9 @@
 - Improve broken intersections between rectangles and lines.
 - Keep generated output compact enough for typical chat windows of unknown width.
 - Preserve the preview and copy workflows.
-- Fix the drawing canvas at 1:1 scale; the user prioritizes a predictable, chat-ready drawing workflow over canvas zoom.
+- Keep the drawing canvas fixed at 4000 × 2500 pixels, navigated by native scrollbars without pan, zoom, or auto-expansion.
+- Make the live preview the actual read-only generated text with vertical scrolling only.
+- Add an undoable eraser and a Markdown-fenced copy option.
 - Prevent tiny rectangles and very short lines/arrows from collapsing into invisible or ambiguous output.
 - Record the proposed live text preview and destination-specific formatting feature in the design document.
 - Refine the design around ASCIIFlow-style character-grid drawing, distinct structural line/arrow tools and freeform X marks, independently resizable workspace panes, and an output frame that supports drag resizing plus exact numeric width/height.
@@ -50,7 +52,9 @@ Previously recorded source checks:
 - [x] Unicode edge-mask mapping includes common corners, tees, and four-way crossings.
 - [x] Rectangle corners and borders use edge masks.
 - [x] Horizontal and vertical lines use edge masks.
-- [x] Drawing canvas stays at fixed 1:1 scale; wheel input is blocked for canvas zoom.
+- [x] Drawing canvas is fixed at 4000 × 2500 pixels and uses native scrollbars for navigation.
+- [x] Preview uses a selectable `<pre>` element and only enables vertical scrolling.
+- [x] Eraser, Markdown copy button, and their handlers are present.
 - [x] Tiny rectangles have a minimum 2-by-2 character footprint.
 - [x] Collapsed line/arrow endpoints are extended along their dominant direction.
 - [x] Previous candidate JavaScript syntax parse was successful.
@@ -78,6 +82,6 @@ Previously recorded source checks:
 
 ## Verification and acceptance status
 
-This candidate changes `app.js`, `index.html`, and `style.css`. Source-level consistency checks confirmed the new tool, snapping helpers, live output node, draft preview path, pane divider handlers, and responsive divider rule are present. The current JavaScript candidate was parsed successfully without executing it, and the `getElementById` references in the app resolve to unique IDs in the HTML. Browser interaction tests and runtime acceptance tests have not been run. The numeric output frame, overflow reporting, and destination profiles remain proposed work.
+This candidate changes `app.js`, `index.html`, `style.css`, `README.md`, and the working design/maintenance records. Source-level consistency checks confirmed the new tool, snapping helpers, live output node, draft preview path, pane divider handlers, and responsive divider rule are present. The current JavaScript candidate was parsed successfully without executing it, and the `getElementById` references in the app resolve to unique IDs in the HTML. Browser interaction tests and runtime acceptance tests have not been run. The numeric output frame, overflow reporting, and destination profiles remain proposed work.
 
 The app remains an unaccepted candidate until the new and existing interactions are exercised in a browser. Previously recorded source checks relate to the prior candidate and do not establish syntax correctness or runtime behavior for these changes. The 72-column limit is a conservative default, not a guarantee across every chat client's font and zoom settings. The design document is now v0.8.0. The exact numeric output frame, overflow reporting, and destination profiles are still future work.
