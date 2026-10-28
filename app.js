@@ -10,9 +10,12 @@
   const inkColor = document.getElementById('inkColor');
   const textEditor = document.getElementById('textEditor');
   const canvasWorld = document.querySelector('.canvas-world');
+  const canvasFrame = document.querySelector('.canvas-frame');
   const asciiViewport = document.querySelector('.ascii-viewport');
   let generatedAscii = '';
-  // Fixed-size canvas; native scrollbars navigate without changing scale.
+  // Responsive-width canvas with a tall, fixed CSS-pixel drawing surface.
+  // The canvas bitmap width tracks the viewport so drawing coordinates stay readable.
+  const CANVAS_HEIGHT = 1600;
 
 
   const state = {
@@ -377,6 +380,23 @@
   }
 
   updateAsciiPreview();
+
+  // Keep the drawing surface as wide as its pane and preserve a tall vertical workspace.
+  // Horizontal overflow is clipped; vertical navigation belongs to .canvas-frame.
+  const resizeCanvasToFrame = () => {
+    const nextWidth = Math.max(1, Math.floor(canvasFrame.clientWidth));
+    const widthChanged = canvas.width !== nextWidth;
+    const heightChanged = canvas.height !== CANVAS_HEIGHT;
+    if (widthChanged) canvas.width = nextWidth;
+    if (heightChanged) canvas.height = CANVAS_HEIGHT;
+    if (widthChanged || heightChanged) render();
+  };
+  if (window.ResizeObserver) {
+    new ResizeObserver(resizeCanvasToFrame).observe(canvasFrame);
+  } else {
+    window.addEventListener('resize', resizeCanvasToFrame);
+  }
+  resizeCanvasToFrame();
 
   canvas.addEventListener('pointerdown', event => {
     // Textarea clicks are for caret placement, not canvas actions.
