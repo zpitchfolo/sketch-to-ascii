@@ -35,8 +35,8 @@
 - Updated `app.js`, `index.html`, and `style.css` so Draw stamps X marks on the character grid, inspired by ASCIIFlow, instead of making continuous freehand strokes.
 - Removed the separate live text-output pane and Generate ASCII button; the existing visual preview is now the single live output surface.
 - Kept structural lines and arrows selectable and movable as whole objects, with endpoint handles for adjustments.
-- Structural line/arrow endpoint resizing preserves axis alignment and grid snapping.
-- Whole-line/arrow dragging now moves the complete stroke in grid-cell increments, preserving its axis and length. X-brush strokes interpolate skipped grid cells between pointer events.
+- Structural line/arrow endpoint dragging reroutes the path through a right-angle elbow while preserving grid snapping.
+- Whole-line/arrow dragging moves the complete route in grid-cell increments while preserving its right-angle shape. X-brush strokes interpolate skipped grid cells between pointer events.
 - Application source was changed for this candidate. Automated syntax checks and browser acceptance tests have not yet been run.
 
 ## Source checks
