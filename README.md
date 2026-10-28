@@ -13,7 +13,7 @@ Open `index.html` in a modern browser. No build step, backend, account, or AI se
 - Desktop drawing/output panes can be resized independently
 - Select, move, and resize existing objects with visible handles
 - Enter and edit text directly on the canvas in an inline text box
-- Responsive drawing canvas that fits the pane width without horizontal scrolling; the underlying drawing coordinate space remains 4000 × 2500
+- Responsive-width drawing canvas that fits the pane without horizontal scrolling; the drawing surface stays 1600 pixels tall and scrolls vertically
 - Eraser tool removes objects on click or while dragging over them, with undo support
 - The live preview is actual selectable text, preserving spacing and line breaks, and scrolls vertically without zoom or pan
 - Copy ASCII as plain text, or copy it wrapped in a Markdown code fence for platforms that support Markdown
@@ -33,8 +33,8 @@ Open `index.html` in a modern browser. No build step, backend, account, or AI se
 - The 72-by-28 output limit is a practical target, not a guarantee for every chat client, font, or zoom setting.
 - Draw stamps X marks on grid points; diagonal intersections remain approximate.
 - The output frame still has no drag-resize or exact numeric width/height controls; destination profiles are not implemented.
-- Live preview and pane resizing have received source-level checks only; browser interaction acceptance remains pending.
-- The drawing canvas is deliberately bounded to 4000 × 2500 pixels; content beyond those edges is not available.
+- Responsive canvas sizing and pane resizing have received source-level checks only; browser interaction acceptance remains pending.
+- The drawing surface is 1600 pixels tall. Its width follows the drawing pane; resizing the pane changes the available horizontal drawing space.
 - Images are out of scope for the first version.
 - Browser clipboard permissions vary by browser and how the file is opened; a manual-copy fallback is included.
 - The canvas and drawing are held in memory. Persistence is not implemented.
