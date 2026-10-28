@@ -37,15 +37,12 @@ h1 { font-size: 21px; letter-spacing: -0.035em; }
 .color-control { display: flex; align-items: center; gap: 7px; margin-left: auto; color: var(--muted); font-size: 12px; }
 .color-control input { width: 29px; height: 29px; padding: 2px; border: 1px solid var(--line); border-radius: 8px; background: white; }
 .canvas-frame { position: relative; min-height: 380px; flex: 1; overflow: auto; border: 1px solid #e7e8ee; border-radius: 10px; background: var(--canvas); isolation: isolate; }
-.canvas-world { position: absolute; top: 0; left: 0; width: 4000px; height: 2500px; transform-origin: 0 0; background-color: var(--canvas); background-image: radial-gradient(#e4e5ec 0.8px, transparent 0.8px); background-size: 36px 36px; }
+.canvas-world { position: relative; flex: 0 0 auto; width: 4000px; height: 2500px; background-color: var(--canvas); background-image: radial-gradient(#e4e5ec 0.8px, transparent 0.8px); background-size: 36px 36px; }
 #drawingCanvas { display: block; width: 4000px; height: 2500px; touch-action: none; cursor: crosshair; }
 .canvas-text-editor { position: absolute; top: 0; left: 0; z-index: 2; min-width: 120px; min-height: 32px; max-width: none; padding: 3px 5px; overflow: hidden; border: 1px solid var(--accent); border-radius: 3px; outline: 2px solid rgb(93 75 214 / 18%); background: rgb(255 255 255 / 96%); color: var(--ink); font: 16px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; resize: both; white-space: pre; }
 .canvas-text-editor[hidden] { display: none; }
-.canvas-frame.is-panning, .ascii-viewport.is-panning { cursor: grabbing; }
-.canvas-frame.is-panning #drawingCanvas { cursor: grabbing; }
-.ascii-zoom-indicator { position: absolute; top: auto; bottom: 8px; right: 8px; z-index: 3; padding: 4px 7px; border: 1px solid #e1e2e9; border-radius: 6px; background: rgb(255 255 255 / 90%); color: #646879; font-size: 11px; pointer-events: none; }
-.ascii-viewport { position: relative; flex: 1 1 260px; height: 260px; min-height: 160px; overflow: hidden; border: 1px solid var(--line); border-radius: 9px; background: #fcfcfe; touch-action: none; }
-.ascii-preview { position: absolute; inset: 0; display: block; width: 100%; height: 100%; pointer-events: none; }
+.ascii-viewport { flex: 1 1 260px; height: 260px; min-height: 160px; overflow-y: auto; overflow-x: hidden; border: 1px solid var(--line); border-radius: 9px; background: #fcfcfe; }
+.ascii-preview { display: block; box-sizing: border-box; width: max-content; min-width: 100%; min-height: 100%; margin: 0; padding: 12px; color: #252833; font: 11px/16.5px ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; white-space: pre; overflow-wrap: normal; }
 .ascii-preview.is-empty { color: #a2a5b0; }
 .canvas-hint { position: absolute; bottom: 12px; left: 13px; padding: 5px 8px; border: 1px solid #e8e9ef; border-radius: 6px; background: rgb(255 255 255 / 88%); color: #858997; font-size: 11px; pointer-events: none; }
 .canvas-footer { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; padding-top: 12px; color: var(--muted); font-size: 11px; }
@@ -74,7 +71,7 @@ textarea::placeholder { color: #a2a5b0; }
 .status-message { min-height: 16px; margin-top: 10px; color: var(--muted); font-size: 11px; }
 .app-footer { padding: 18px 4px 0; color: #8b8f9d; text-align: center; font-size: 11px; }
 @media (min-width: 1000px) { .canvas-frame { min-height: 580px; } }
-@media (max-width: 900px) { .app-shell { padding: 16px; } .workspace { grid-template-columns: 1fr; } .workspace-divider { display: none; } .output-column { min-height: 600px; } .canvas-frame, #drawingCanvas { min-height: 420px; } }
+@media (max-width: 900px) { .app-shell { padding: 16px; } .workspace { grid-template-columns: 1fr; } .workspace-divider { display: none; } .output-column { min-height: 600px; } .canvas-frame { min-height: 420px; } }
 @media (max-width: 480px) { .app-shell { padding: 10px; } .drawing-column, .output-column { padding: 12px; } .tool-button { padding: 7px; } .tool-button > span { font-size: 11px; } .output-actions { grid-template-columns: 1fr; } .topbar { gap: 10px; } .brand-copy p { max-width: 210px; line-height: 1.4; } }
 
 /* Single-screen desktop layout: keep the app chrome fixed to the viewport. */
