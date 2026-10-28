@@ -37,8 +37,8 @@ h1 { font-size: 21px; letter-spacing: -0.035em; }
 .color-control { display: flex; align-items: center; gap: 7px; margin-left: auto; color: var(--muted); font-size: 12px; }
 .color-control input { width: 29px; height: 29px; padding: 2px; border: 1px solid var(--line); border-radius: 8px; background: white; }
 .canvas-frame { position: relative; min-height: 380px; flex: 1; overflow-x: hidden; overflow-y: auto; border: 1px solid #e7e8ee; border-radius: 10px; background: var(--canvas); isolation: isolate; }
-.canvas-world { position: relative; width: 100%; aspect-ratio: 8 / 5; outline: 2px solid #bfc2d0; outline-offset: -2px; background-color: var(--canvas); background-image: radial-gradient(#e4e5ec 0.8px, transparent 0.8px); background-size: .9% 1.44%; }
-#drawingCanvas { display: block; width: 100%; height: auto; touch-action: none; cursor: crosshair; }
+.canvas-world { position: relative; width: 100%; height: 1600px; outline: 2px solid #bfc2d0; outline-offset: -2px; background-color: var(--canvas); background-image: radial-gradient(#e4e5ec 0.8px, transparent 0.8px); background-size: 36px 36px; }
+#drawingCanvas { display: block; width: 100%; height: 1600px; touch-action: none; cursor: crosshair; }
 .canvas-text-editor { position: absolute; top: 0; left: 0; z-index: 2; min-width: 120px; min-height: 32px; max-width: none; padding: 3px 5px; overflow: hidden; border: 1px solid var(--accent); border-radius: 3px; outline: 2px solid rgb(93 75 214 / 18%); background: rgb(255 255 255 / 96%); color: var(--ink); font: 16px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; resize: both; white-space: pre; }
 .canvas-text-editor[hidden] { display: none; }
 .ascii-viewport { flex: 1 1 260px; height: 260px; min-height: 160px; overflow-y: auto; overflow-x: hidden; border: 1px solid var(--line); border-radius: 9px; background: #fcfcfe; }
