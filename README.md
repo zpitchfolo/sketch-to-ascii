@@ -21,7 +21,7 @@ Open `index.html` in a modern browser. No build step, backend, account, or AI se
 - Output is capped at 72 columns by 28 rows for a conservative chat-friendly size
 - Tiny rectangles receive a minimum 2-by-2 character footprint; line segments that would collapse into one cell are extended to remain visible
 - Rectangle and horizontal/vertical line intersections use Unicode box-drawing junctions
-- Structural line/arrow drawing snaps to the visible 36-pixel grid and constrains each stroke to one axis
+- Structural line/arrow drawing snaps to the visible 36-pixel grid and automatically routes with a 90-degree elbow; endpoint handles reroute the path while body-drag moves the whole route
 - Optional descriptor; copy ASCII alone or the drawing plus descriptor
 - Clear canvas and undo the last action
 
@@ -33,7 +33,7 @@ Open `index.html` in a modern browser. No build step, backend, account, or AI se
 - Draw stamps X marks on grid points; diagonal intersections remain approximate.
 - The output frame still has no drag-resize or exact numeric width/height controls; destination profiles are not implemented.
 - Live preview and pane resizing have received source-level checks only; browser interaction acceptance remains pending.
-- The drawing world expands in 2000-unit increments, so it is practically expandable rather than mathematically infinite.
+- The drawing world has native scrollbars and expands in 2000-unit increments as you pan near its edges, so it is practically expandable rather than mathematically infinite.
 - Images are out of scope for the first version.
 - Browser clipboard permissions vary by browser and how the file is opened; a manual-copy fallback is included.
 - The canvas and drawing are held in memory. Persistence is not implemented.
