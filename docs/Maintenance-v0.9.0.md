@@ -1,7 +1,7 @@
-# SketchText Maintenance v0.11.2
+# SketchText Maintenance v0.11.3
 
 **Artifact:** Chat-fit ASCII output and intersection handling  
-**Version:** 0.11.2  
+**Version:** 0.11.3  
 **Status:** Implementation candidate; syntax/runtime acceptance checks pending  
 **Date:** 2026-10-27  
 **Target:** `main`  
@@ -25,7 +25,9 @@
 - Added per-cell edge masks and Unicode junction resolution for rectangles and horizontal/vertical lines.
 - Rectangle borders and axis-aligned lines now merge connection masks rather than blindly overwriting existing edge characters.
 - Kept diagonal strokes approximate and documented this limitation; the renderer cannot infer semantic connection intent.
-- Fixed the drawing canvas scale at 1:1 and made its wheel handler prevent zoom; middle-drag panning remains available. ASCII-preview zoom remains independent.
+- Replaced canvas panning and automatic expansion with a bounded 4000 × 2500 drawing surface and native horizontal/vertical scrollbars.
+- Replaced the preview canvas with a selectable `<pre>` containing generated text; it preserves line breaks and spaces and scrolls vertically only.
+- Added an eraser that removes objects on click/drag with one undo snapshot per gesture, plus Markdown-fenced copy output.
 - Give mapped rectangles a minimum 2-by-2 character footprint and extend line/arrow segments when both endpoints map to the same cell.
 - Added a design-only proposal for ASCIIFlow-inspired grid-based drawing interactions. Structural lines and arrows should follow character-grid directions, while X marks and other freeform annotations remain available as distinct tools.
 - Specified independently resizable drawing/output panes and a separate output frame that can be dragged or sized using exact character-column and line counts. Pane size and output-frame dimensions are separate controls; overflow should be shown rather than silently distorting or deleting objects.
@@ -58,7 +60,7 @@ Previously recorded source checks:
 - [ ] Browser test: line crosses rectangle border and renders a junction.
 - [ ] Browser test: overlapping rectangles and multiple crossings.
 - [ ] Browser test: output stays within configured dimensions and is readable in narrow chat panes.
-- [ ] Browser test: diagonals/structural-line constraints, arrowheads, labels, preview/copy, undo, fixed-scale canvas behavior, and ASCII-preview zoom.
+- [ ] Browser test: structural-line constraints, arrowheads, labels, preview/copy, undo, fixed-size canvas bounds, eraser, and vertical-only preview scrolling.
 - [ ] Interaction test: structural lines and arrows snap to character-grid directions while X marks/freeform annotations remain usable.
 - [ ] Interaction test: line/arrow crossings, box-border connections, and arrowheads render without gaps or corrupted junctions.
 - [ ] Interaction test: drawing and text panes resize independently without changing output-frame dimensions.
@@ -66,7 +68,10 @@ Previously recorded source checks:
 - [ ] Interaction test: changing frame dimensions preserves source objects, updates preview, and visibly flags overflow without silent deletion or distortion.
 - [ ] Runtime test: live text output and visual preview update during pointer movement, object edits, undo, and text-label commits.
 - [ ] Runtime test: grid-snapped lines/arrows draw as right-angle paths, preserve their shape when moved, and reroute when either endpoint is dragged.
-- [ ] Runtime test: canvas scrollbars navigate the large drawing world, and automatic expansion preserves objects, active drafts, and undo snapshots.
+- [ ] Runtime test: native scrollbars navigate the fixed canvas without changing coordinates or dimensions.
+- [ ] Runtime test: eraser removes objects by click/drag and undo restores erased objects.
+- [ ] Runtime test: Markdown copy produces a valid fenced code block, including labels with backticks.
+- [ ] Runtime test: preview preserves spaces/newlines and only scrolls vertically.
 - [ ] Runtime test: the Draw brush stamps X marks at grid points and each stamp exports as `X`.
 - [ ] Runtime test: lines and arrows can be selected, moved, and adjusted by their endpoint handles.
 - [ ] Runtime test: desktop pane divider works with pointer and keyboard, and is hidden on narrow screens.
@@ -75,4 +80,4 @@ Previously recorded source checks:
 
 This candidate changes `app.js`, `index.html`, and `style.css`. Source-level consistency checks confirmed the new tool, snapping helpers, live output node, draft preview path, pane divider handlers, and responsive divider rule are present. The current JavaScript candidate was parsed successfully without executing it, and the `getElementById` references in the app resolve to unique IDs in the HTML. Browser interaction tests and runtime acceptance tests have not been run. The numeric output frame, overflow reporting, and destination profiles remain proposed work.
 
-The app remains an unaccepted candidate until the new and existing interactions are exercised in a browser. Previously recorded source checks relate to the prior candidate and do not establish syntax correctness or runtime behavior for these changes. The 72-column limit is a conservative default, not a guarantee across every chat client's font and zoom settings. The design document is now v0.7.0. The exact numeric output frame, overflow reporting, and destination profiles are still future work.
+The app remains an unaccepted candidate until the new and existing interactions are exercised in a browser. Previously recorded source checks relate to the prior candidate and do not establish syntax correctness or runtime behavior for these changes. The 72-column limit is a conservative default, not a guarantee across every chat client's font and zoom settings. The design document is now v0.8.0. The exact numeric output frame, overflow reporting, and destination profiles are still future work.
